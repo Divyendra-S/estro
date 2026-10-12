@@ -31,6 +31,10 @@ nonisolated struct PageInspection: Codable, Equatable, Sendable {
     /// What a motion video can lift off the page alone (spec 0011, *Agent*), largest first.
     var liftable: [Liftable]?
 
+    /// Every picture on the page by its address, shown or not (spec 0024): the product's own screenshots and previews,
+    /// which a motion video lifts by address.
+    var pictures: [Picture]?
+
     /// The box of the first element each requested selector matches; `nil` when none were requested.
     var boxes: [String: Box]?
 
@@ -39,7 +43,7 @@ nonisolated struct PageInspection: Codable, Equatable, Sendable {
     var renderCost: [String: Double]?
 
     private enum CodingKeys: String, CodingKey {
-        case title, url, description, viewport, elements, truncated, overlays, brand, liftable, boxes
+        case title, url, description, viewport, elements, truncated, overlays, brand, liftable, pictures, boxes
         case pageHeight = "page_height"
         case renderCost = "render_cost"
     }
@@ -142,6 +146,25 @@ nonisolated struct PageInspection: Codable, Equatable, Sendable {
 
         /// `#rrggbb`; `nil` when it's transparent.
         var background: String?
+    }
+
+    nonisolated struct Picture: Codable, Equatable, Sendable {
+
+        /// Absolute; a resized copy (Next.js's `/_next/image`) is named by its original.
+        var url: String
+
+        /// `img` or `video`.
+        var kind: String
+        var alt: String?
+
+        /// Its own size in pixels (an `img`'s attributes until it has loaded).
+        var size: Size
+
+        /// A video's still, an image address.
+        var poster: String?
+
+        /// Whether it was on the page as loaded, not in another tab or slide.
+        var shown: Bool
     }
 
     nonisolated struct Overlay: Codable, Equatable, Sendable {

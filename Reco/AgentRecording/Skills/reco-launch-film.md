@@ -185,16 +185,12 @@ Choose one look from inspect_page's brand and what the product is, and keep the 
 |---|---|---|---|
 | Satin | `satin` | cut, whip | A brand without a hue (black, white, grey accent), or a dark UI whose colour is all in the UI |
 | Light | `ember`, `sunlit`, `bloom`, `orb`, `ripple` | cut, whip, glow; ring into the closing | A brand with a clear hue: AI, design, creative and consumer products |
-| Dither | `matrix`, `warp`, `swirl`, `tide` | cut, whip, dither; ring into the closing | A technical product with a brand colour: databases, APIs, infrastructure, developer platforms |
+| Dither | `matrix`, `warp`, `swirl`, `tide` | cut, whip, dither; ring into the closing | A site whose own pictures have dots, a grid, halftone or pixels |
 
 - Light and dither take their colour from `style.accent`: set it to the brand's colour, never a grey (a grey
   accent makes them grey: choose satin then).
-- In the light and dither looks, give each scene after a whip or the look's seam its own field from the look's
-  list (`field` on the scene), so the ground changes as the story moves on; a scene after a cut keeps the field
-  before it:
-  - the opening on one with its light in the middle, alone for its first second: `bloom`, `orb`, `matrix`;
-  - the macros after it on ones that keep their light round the UI: `ember` (two corners), `sunlit` (rising
-    from below), `ripple`, `warp`, `tide`, `swirl`.
+- Keep one field for the film (reco-director section 3); a new field each scene reads as a reel of shaders. A dark
+  site whose colour is all in its UI stands on `pool` instead, lit in its accent.
 - The closing is drawn on black in every look.
 - canvas: `{"size": [1920, 1080], "frameRate": 30, "field": <the opening's field>, "background": "#000000", "pacing": "beats"}`.
 - style:

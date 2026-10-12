@@ -44,7 +44,9 @@ nonisolated enum AgentToolCatalog {
                 the palette (painted colours, most area first), gradients, corner radii (button, card) and fonts (the heading's \
                 and body's font files, for a motion video's style.fonts) and motion (the curves its transitions use, most used \
                 first, their middle duration in ms, whether any overshoots, how many animations run); and what a motion video can lift alone \
-                (liftable: cards, panels, app mockups and pictures with their boxes and corner radius, largest first). Reco scrolls \
+                (liftable: cards, panels, app mockups and pictures with their boxes and corner radius, largest first); and every \
+                picture on the page by its address, also those in tabs and slides not shown (pictures: url, img or video, alt, its \
+                own size, a video's poster, whether shown): the product's own screenshots and previews, lifted by url. Reco scrolls \
                 through the page first, so content that loads on the way is listed too. Call it before record_page to get \
                 selectors to hover, click or scroll to, and on the page a click opens (its href) for the steps after that click. \
                 render_cost says how many seconds a second of video takes to render at scale 1 and 2 on this page: record at 2 \

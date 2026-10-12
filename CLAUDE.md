@@ -1546,6 +1546,26 @@ Key facts:
 - The control grows at most 2.5× (further, its pixels blur), is gone by 0.35 of the way; the colour turns 0.1–0.55, the next
   scene comes up 0.25–0.7. A control shorter than an eighth of the frame starts round; a card keeps 0.3 of its shorter side.
 
+### S18 — The product as its site shows it (`remotion`, spec 0024)
+
+Mastra's film was drawn from shapes while mastra.ai shows Studio in ten vector previews, and it took the arc every recent film
+took (ask, box, "Working…", answer, three words, ring). `inspect_page` now lists every picture by its address (`pictures`,
+tabs and slides not shown too), and the director makes films of them, shows dense ones close and part by part, and names that arc.
+
+| File | Role |
+|---|---|
+| `WebRecording/Service/WebInspectScript+Pictures.swift`, `Model/PageInspection.swift` (`Picture`) | Every `img` and `video` at least 200×120 of its own pixels, once, shown first; a Next.js copy by its original |
+| `AgentRecording/Skills/reco-director.md` | Research reads the landing's product UI (every word and number) and its example job; the brief's story; section 9 rebuilds that UI as layers that act and lifts pictures into it; the ground from the site; the end by the variation |
+| `AgentRecording/Skills/reco-story-film.md`, `reco-launch-film.md` | Their looks tables: `pool` for a dark site whose colour is in its UI, dither only where the site's pictures have dots; one field a film |
+
+Key facts:
+- `Mastra 2` from the app (14 min, 18 s 4K60) lifted the site's code panel, the memory and evals previews (SVG, sharp at 8–9×) and
+  the wordmark, on a new arc. The user found it "really bad": nothing from the site, the same shader, no story. Against Cardboard 6
+  (the landing's prompt and steps rebuilt, 18 photos, a story, `pool`) it was a scroll across grey previews, a feature tour, and a
+  new dither each scene. Every looks table had sent developer tools to dither.
+- `Mastra 3` (19 min, 27.9 s 4K60) after the change: glue code and errors, then the name, the agent's code typed, the landing's
+  trace rebuilt and running, the tool call, evals ticking, on `satin`. Still 26 % of the time: the end card holds 4 s.
+
 ### Telemetry JSON (version 3)
 
 ```
@@ -1629,6 +1649,7 @@ should hold but need re-measuring.
 | S15 the After Effects bar (spec 0020) | Camera angle, arc and depth of field, `swing`, `flow` (shared element and layered handoff), the `pool` ground, small and flat checks, the director's craft section, after the user found Cardboard 2 basic. Next: Cardboard from the app, the user's verdict |
 | S16 films are actions (spec 0021) | The picture-still check in `preview_motion`, the director rewritten around actions and UI facing the viewer, after the user found Cardboard 5 static. Next: Cardboard from the app, the user's verdict |
 | S17 transitions that read (spec 0022) | Expand as a container transform, a lit stack, seams sized by the frame, the `carried` lint and the director's cut rules, after the user asked for better transitions on Cardboard 6. A Cardinal film from the app (29 s, 4K60). Next: the user's verdict |
+| S18 the product as its site shows it (spec 0024) | `pictures` in `inspect_page`, the director builds films from the site's own pictures of the product and avoids the template arc, after the user found Mastra "really bad" (no UI, repeated). `Mastra 2` made from the app; the user found it "really bad" again (screenshots, no story, the same shader). The landing's UI rebuilt as layers that act, a story required, the ground from the site. `Mastra 3` made from the app. Next: the user's verdict |
 
 What to build next: `docs/specs/0012-motion-quality.md` (October 2026), phases Q1–Q6; spec 0011's phases 5–7 wait for it. The earlier
 order: `docs/specs/0009-stand-out-roadmap.md`. The N items' details, ranked from a September 2026 survey of competitors and Apple's on-device APIs:

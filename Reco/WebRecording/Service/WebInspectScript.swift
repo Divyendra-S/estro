@@ -268,6 +268,7 @@ enum WebInspectScript {
       }
       return listed;
     };
+    \#(picturesFunction)
     const description = (document.querySelector('meta[name="description" i], meta[property="og:description"]')?.content || '').trim();
     const result = {
       title: document.title,
@@ -303,7 +304,8 @@ enum WebInspectScript {
           return undefined;
         }
       })(),
-      liftable: (() => { try { return liftableOf(); } catch { return undefined; } })()
+      liftable: (() => { try { return liftableOf(); } catch { return undefined; } })(),
+      pictures: (() => { try { return picturesOf(); } catch { return undefined; } })()
     };
     if (selectors.length) {
       result.boxes = {};

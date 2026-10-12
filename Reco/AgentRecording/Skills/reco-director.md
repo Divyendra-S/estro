@@ -35,6 +35,13 @@ Find:
   of its wordmark, lifted bare from `brand.logo`), its **control** (the one button or field a user always touches: send,
   record, search, run, book), its **object** (what it makes or moves, drawn the way its UI draws it: a lead's row, an email,
   a clip, a meeting, a PR, a chart, a person's avatar) and its **word** (the one word of its line that carries the idea).
+- its **product as the landing shows it**, which the film is made of (section 9): the UI its hero and feature sections
+  draw (a prompt box, a trace, a table of scores, a board, a file tree, a chat), with **every word and number on it**
+  exactly ("agent run: 'ops-agent' 10.364s", "Correct tool selected 100%", "+24%"), its parts' colours and corners
+  (inspect_page with their selectors; `liftable` lists the panels). And its **pictures**: inspect_page's `pictures` (tabs
+  and slides not shown too), keeping the product's output (photos, clips, documents users made), avatars and marks.
+- its **example**: the one concrete job its site shows the product doing (its demo's agent and what it was asked, its
+  sample prompt, a customer's case), start to finish. The film tells that job.
 
 ## 2. The brief
 
@@ -42,6 +49,8 @@ Settle these before you choose anything. The user's words decide where they say 
 
 - **The idea:** one sentence the film says, in plain words ("Every call writes its own follow-up").
 - **The tension:** what is hard without it, as a user would say it ("I spend Fridays on follow-ups").
+- **The story:** who, the job (its example, section 1) and how it ends, in the site's own words and numbers. A film
+  without one is a feature tour (Mastra 2: code, then memory, then evals, then the logo) and says nothing.
 - **The hero moment:** the one thing on screen that shows it working: a request turning into a result, a mess turning
   into order, a number moving.
 - **The personality:** three motion words from the brand's voice ("precise, quiet, fast"; "loud, warm, playful"), and the
@@ -62,20 +71,21 @@ Every film is drawn in the product's own taste. Set it once with set_style and s
   if it paints one. Nothing else: never a colour the site doesn't use.
 - **Shape.** Corners from `radius`: cards at `radius.card`, pills and buttons at `radius.button` (999 is a pill), scaled
   from CSS pixels to the canvas (about 1.5× at 1080p). A square-cornered brand gets square cards; a round one, round.
-- **Ground.** What the scenes stand on, by the brand, then by `Variation` among those that fit. Never a flat void: a dark
-  frame is lit (Reco's shader looks, or a pool of light), a light one has soft colour moving through it.
+- **Ground.** What the scenes stand on: the site's own, lit. Never a flat void: a dark frame has a pool of light, a
+  light one soft colour moving through it. A texture (dots, grain, a glow) only when the site's own pages show it: the
+  product is the picture, the ground stays behind it. Every film of a dark developer tool in dithered dots read as the
+  same film (Orca, Supabase, Mastra 2); Cardboard's, the one users liked best, stood on a quiet pool of its blue.
 
-| The brand | Grounds that fit |
+| The site | Grounds that fit |
 |---|---|
-| Dark site, any hue | `swirl`, `warp` or `tide` (dither in its hue, 0.45 under type); `satin`; `aurora` if it paints a gradient |
-| Dark site, one clear hue, bold | `ember`, `sunlit`, `bloom`, `orb`, `ripple` (toned to 0.45 under type); a dither |
-| Technical (APIs, data, infra, developer tools) or black and white | `warp`, `tide`, `swirl`, `matrix`; `satin` |
-| Dark and quiet, its colour all in its UI | `satin`; `pool` (one soft light in its hue) |
-| Light site, one clear colour | `haze` with its gradient; `plain` on its background with lit, shadowed cards |
-| Light site, warm, typographic, print-like | `paper`; `plain` |
+| Dark, its colour in its UI (most) | `pool` in its hue; `satin` |
+| Dark, painting a gradient or a glow | `aurora` (its gradient); `ember`, `sunlit`, `bloom`, `orb` (toned to 0.45 under type) |
+| Dark, with dots, a grid, halftone or pixels in its own pictures | `swirl`, `warp`, `tide`, `matrix` (0.45 under type) |
+| Light, one clear colour | `haze` with its gradient; `plain` on its background with lit, shadowed cards |
+| Light, warm, typographic, print-like | `paper`; `plain` |
 
-  A film keeps one ground family (`pool` and `plain` are one). Scenes may change the colour of a plain ground (a statement
-  on the accent, the hero on black) with a grow or a flood.
+  A film keeps one ground, never a new field each scene (`pool` and `plain` are one). Scenes may change the colour of a
+  plain ground (a statement on the accent, the hero on black) with a grow or a flood.
 
 ## 4. The motion personality: its curves and its transitions
 
@@ -93,7 +103,7 @@ entrances and swaps about its duration (a 150 ms site's things snap in; a 600 ms
 | **Editorial, exact** (writing, research, voice) | stepped and still; `brighten`, `sweep`, `blink`, `eat` | `eat`, `grow`, `wipe`, `flow` | hard cuts |
 
 The look's seam is its ground's own: `dither` over a dither, `glow` over light, `melt` over haze, `wipe` on paper, `ring`
-into the logo. The graphic seams (`iris`, `bars`, `slats`, `tiles`, `split`, `spin`, `glitch`, `pixelate`, `liquid`, `flip`,
+into the logo; over `pool` or `satin` the turns are the product's own things (section 8). The graphic seams (`iris`, `bars`, `slats`, `tiles`, `split`, `spin`, `glitch`, `pixelate`, `liquid`, `flip`,
 `cube`, `flash`, `stretch`) are a slideshow's transitions: at most one in a film, only in a playful or bold one, only where
 the story turns hardest.
 
@@ -165,6 +175,11 @@ So write the film as actions before you write any scene: one line each, a verb o
 | Words | `brighten`, `letters`, `kinetic`, `sweep`, `wordByWord`, a line laid big over the product's pictures | editorial, motion design |
 | The name | `unfold` (mark into name and line), `letters`, `fly`, `ring` into the logo | editorial, motion design, story |
 
+**The product's own work, not a generic one.** The actions are the landing's UI doing its job (section 9): a trace's
+steps landing one under the other with their real timings, a score ticking to its number, a board filling, a photo made.
+A generic box, a "Working…" shimmer and three words one at a time are any product's: Tasklet's and Mastra's first films
+were that arc with a new logo. Use them only where the site's UI has nothing of its own for that beat.
+
 ## 8. Transitions: made of the product, each with a reason
 
 A film whose transitions any product could have (a stack, a cut, a whip) is a template. Its turns are made of **this
@@ -195,7 +210,7 @@ The rest are the seams between them, each with a reason:
 | The camera goes to another part of the same thing | `whip` |
 | A thing grows or floods to fill the frame and is the next ground | `grow` or `flood` in the scene, then a cut |
 | The film's three turns: the opening, the first answer, the end words | the look's seam (`dither`, `glow`, `melt`, `wipe`) |
-| The end words into the logo | `ring`, the logo on `halo` |
+| The end into the logo | by the variation: 1–2 `flow` of the last thing into the mark, 3–4 `unfold`, 5 the name in `letters` on a cut, 6 `ring` (a dither or light look only), the logo on `halo` |
 | The next scene moves on its first frame (typing, a pop at 0, a scatter) | `cut` |
 
 - At least five kinds in a film; never the same seam on two scene changes running; never more than two cuts running; never
@@ -210,12 +225,24 @@ The rest are the seams between them, each with a reason:
 
 ## 9. The frame
 
-**Facing the viewer, big, whole.** The product's parts are rebuilt as shapes, type and its own images and shown facing the
-camera, as Cal.com's film did. Never a whole window or a dense panel tilted on a card: it reads as a template and its text
-can't be read.
+**The product as its landing shows it.** Cardboard's film, the one users liked best, was its landing's own product: the
+prompt it shows ("Make a film about…"), its working steps in its own words, its clips and timeline, filled with eighteen of
+its site's photos. Mastra's two films were a generic box and a scroll across three grey previews, and read as nothing from
+its site.
+- **Rebuild the landing's UI as layers** (section 1): its panels, rows, pills and fields in its exact words and numbers,
+  its colours, corners and face, so each part can act as the product does (rows land with their timings, a bar grows to
+  its length, a score counts up, a status turns to done). Rebuilt, it is sharp and moves; lifted, it is a still picture.
+- **Lift what is a picture** into its slots: photos, outputs, thumbnails, avatars, marks (`url` from `pictures`,
+  `selector: img`, `viewport` its own size), and a control shown in macro where it is typed into or clicked.
+- **A screenshot or preview is never the action.** Panning or scrolling across one is a slideshow. Use one only as a
+  backdrop behind the rebuilt part that acts, or its `region` for a part the site draws too finely to rebuild.
+- Shown close, a part at a time, its type at least 28 px. Never UI the site doesn't show.
+
+**Facing the viewer, big, whole.** Never a whole window or a dense panel tilted on a card: it reads as a template and its
+text can't be read.
 - A control is shown in macro: its pill or button 3–4× its size, the hand as large as it, the frame cropping the rest.
-- An answer is a thing rebuilt from the product (tiles, cards, a short list, a calendar's week, one result), whole in the
-  frame, centred, 60–80 % of its width, its type at least 34 px.
+- An answer is the product's own picture of it, close, or a thing rebuilt from the product (tiles, cards, a short list, a
+  calendar's week, one result), whole in the frame, centred, 60–80 % of its width, its type at least 34 px.
 - The person's words are typed at 90–140 px; a statement alone is set as the brand's heading at 110–160 px and something
   moves round it or under it (pictures of the product's output, a reply arriving).
 - `angle` is for a picture or a mark at most, never for UI.
@@ -233,8 +260,9 @@ overshoot only in a playful film, never on type.
 
 ## 10. Write, check, export
 
-1. Load `reco-story-film` (the hand, the macro, the voice, answers as things) and the other technique skills for your
-   moves, and read their recipes. set_style (with fonts) and set_canvas first, then the whole film in one edit_motion call.
+1. Load the technique skills your actions need (section 7's table names them): `reco-launch-film` for real UI in macro
+   (views, whips, typing into its own field), `reco-story-film` for the hand and the voice, the others for their moves, and
+   read their recipes. set_style (with fonts) and set_canvas first, then the whole film in one edit_motion call.
 2. preview_motion, and check:
    - Its findings: every one that says **the picture stands still** names a scene to fix: give it an action from section 7
      or cut it shorter. The film is done only when none is left.
@@ -243,7 +271,9 @@ overshoot only in a playful film, never on type.
      three of them made of the product's own things? Cover the logo: could the transitions belong to another product?
    - Is every line in the brand's own face, its colours and its corners? Would someone who knows the product's site
      recognise it with the logo covered?
-   - Is anything small in a void, tilted, a grey bar, or a dense panel? Rebuild it bigger and simpler.
+   - Is every product moment the landing's own UI, in its words and numbers, doing something? A preview scrolled is not.
+   - Can you tell the story in one line: who, the job, how it ends? Is the ground the site's own, one for the film?
+   - Is anything small in a void, tilted, a grey bar, or a dense panel shown whole? Show it close, a part at a time.
    - Would someone who knows the reference films recognise one of them scene for scene? Then change it.
    Fix everything in one edit_motion call. Stop after three previews. Never add a scene to try something out: the
    preview is the test, and a film that ran out of time with one in it showed a calibration card first.

@@ -104,7 +104,8 @@ shader looks and what each needs. Keep the whole film in one (one look a film):
 
 | The brand | Look | `canvas.field` | `fieldStrength` | Seam |
 |---|---|---|---|---|
-| Black and white, or a technical product (developer tools, agents, infrastructure, CLIs) | dither | `warp` (liquid streaks; the default), `tide` (a wave from below), `swirl` | 0.45 | `dither` |
+| Dark, its colour in its UI (most, developer tools too) | pool | `pool` (one soft light in the accent) | 1 | the product's things (reco-director section 8) |
+| Dots, a grid, halftone or pixels in the site's own pictures | dither | `warp` (liquid streaks), `tide` (a wave from below), `swirl` | 0.45 | `dither` |
 | A clear hue (AI, design, consumer) | light | `ember` (two corners), `sunlit` (a wave), `bloom` (a blob) | 0.45 | `glow` |
 | Its colour is a gradient of several hues (Lovable, Stripe) | aurora | `aurora` | 0.8 | cuts only |
 | Dark and quiet, its colour all in its UI | satin | `satin` | 1 | cuts only |

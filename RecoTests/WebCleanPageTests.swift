@@ -86,6 +86,31 @@ struct WebCleanPageTests {
         #expect(liftable.first?.kind == "panel")
     }
 
+    /// Every picture by its address (spec 0024): one in a hidden tab too, a Next.js copy by its original, a video with its
+    /// poster; not an avatar, nor one twice.
+    @Test func inspectingListsEveryPictureByItsAddress() async throws {
+        let page = """
+            <!doctype html><html><body style="margin: 0">
+            <img src="/media/studio.png" width="800" height="450" alt="Studio">
+            <div style="display: none"><img src="/_next/image?url=%2Fmedia%2Ftraces.svg&amp;w=3840&amp;q=75" width="604" height="554"></div>
+            <img src="/media/avatar.png" width="64" height="64">
+            <img src="/media/studio.png" width="800" height="450">
+            <video src="/media/demo.mp4" poster="/media/demo.jpg" width="640" height="360"></video>
+            </body></html>
+            """
+        let pages = try await LocalPages.serving(["/": page])
+        var script = script()
+        script.url = pages.url("/")
+
+        let pictures = try #require(try await WebPageRenderer(script: script).inspect(selectors: []).pictures)
+
+        #expect(pictures.map(\.url) == ["/media/studio.png", "/media/demo.mp4", "/media/traces.svg"].map { pages.url($0).absoluteString })
+        #expect(pictures.map(\.shown) == [true, true, false])
+        #expect(pictures.first?.alt == "Studio")
+        #expect(pictures.last?.size == .init(width: 604, height: 554))
+        #expect(pictures[1].kind == "video" && pictures[1].poster == pages.url("/media/demo.jpg").absoluteString)
+    }
+
     @Test func aTakeOfLocalhostRenders() async throws {
         let pages = try await LocalPages.serving(["/": "<!doctype html><html><body style=\"background: rgb(0, 255, 0)\"></body></html>"])
         var script = script()
