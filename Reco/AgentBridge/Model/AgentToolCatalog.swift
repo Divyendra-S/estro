@@ -42,7 +42,8 @@ nonisolated enum AgentToolCatalog {
                 what stays on screen as it scrolls (a navigation bar, a cookie banner, a chat button), for record_page's hide; and its \
                 brand: background, text and accent colors, serif or sans, the logo, the heading's weight, tracking, case and size, \
                 the palette (painted colours, most area first), gradients, corner radii (button, card) and fonts (the heading's \
-                and body's font files, for a motion video's style.fonts); and what a motion video can lift alone \
+                and body's font files, for a motion video's style.fonts) and motion (the curves its transitions use, most used \
+                first, their middle duration in ms, whether any overshoots, how many animations run); and what a motion video can lift alone \
                 (liftable: cards, panels, app mockups and pictures with their boxes and corner radius, largest first). Reco scrolls \
                 through the page first, so content that loads on the way is listed too. Call it before record_page to get \
                 selectors to hover, click or scroll to, and on the page a click opens (its href) for the steps after that click. \

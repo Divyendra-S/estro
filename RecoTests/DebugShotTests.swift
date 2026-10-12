@@ -32,6 +32,12 @@ struct DebugShotTests {
             print("LINT \(finding.scene): \(finding.message)")
         }
         let plan = try await UICapture.plan(for: document, bundle: bundle, shorterSide: CGFloat(job["side"] as? Double ?? 540), frameRate: 30)
+        for (index, scene) in plan.scenes.enumerated() {
+            if let pole = scene.pole {
+                let layer = plan.scenes[index - 1].layers[pole.layer]
+                print("CHECK pole \(index) \(layer.id) \(pole.point) r \(pole.radius) size \(layer.size) image \(layer.image?.extent ?? .null) screen \(String(describing: MotionFrameRenderer.seamPole(into: index, at: 0, plan: plan))) corners \(plan.placements(of: plan.scenes[index - 1], at: plan.scenes[index - 1].duration).first { $0.layer == pole.layer }?.corners ?? []) scale \(layer.rasterScale)")
+            }
+        }
         let frames = try await ContactSheet.frames(of: plan, at: times.map { ContactSheet.Moment(scene: "", time: $0) })
         for (index, frame) in frames.enumerated() {
             try await ScreenshotService.writePNG(frame, to: URL(filePath: out + "-\(index).png"))

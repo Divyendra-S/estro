@@ -28,6 +28,9 @@ nonisolated enum MotionDocumentError: LocalizedError, Equatable {
     /// Scene id and what's wrong with its shot.
     case invalidShot(String, String)
 
+    /// Scene id and what's wrong with its seam's `by`.
+    case invalidSeam(String, String)
+
     var errorDescription: String? {
         switch self {
         case .invalidCanvas: "The canvas must be at least 16 pixels each way, at 1 to 120 frames a second."
@@ -45,6 +48,7 @@ nonisolated enum MotionDocumentError: LocalizedError, Equatable {
         case .invalidSteps(let id, let reason): "Asset \"\(id)\": \(reason)"
         case .invalidMove(let id, let reason): "A move on \"\(id)\": \(reason)"
         case .invalidShot(let id, let reason): "Scene \"\(id)\"'s shot: \(reason)"
+        case .invalidSeam(let id, let reason): "Scene \"\(id)\"'s seam: \(reason)"
         }
     }
 }

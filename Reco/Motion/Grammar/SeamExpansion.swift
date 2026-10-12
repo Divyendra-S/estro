@@ -53,6 +53,7 @@ nonisolated enum SeamExpansion {
             case .expand: return MotionEasing.morph.progress(linear, duration: duration)
             case .wipe: return SeamExpansion.wipeEasing.progress(linear, duration: duration)
             case .dive, .melt: return MotionEasing.move.progress(linear, duration: duration)
+            case .through: return SeamExpansion.throughEasing.progress(linear, duration: duration)
             case .dither: return min((linear * duration * Self.ditherSteps).rounded(.down) / (duration * Self.ditherSteps), 1)
             default: return easing.progress(linear, duration: duration)
             }
@@ -99,6 +100,13 @@ nonisolated enum SeamExpansion {
     /// ground (15.4–16.1 s) and the ground into a meadow (2.3–2.9 s).
     static let diveDuration = 0.8
     static let meltDuration = 0.75
+
+    /// Flying into the product's shape: slow enough at first that the shape reads as it starts to grow, fastest as it passes
+    /// the frame, settling as the next scene lands (spec 0023). A motif's wave takes as long as tiles' and a little more.
+    static let throughDuration = 1.0
+    static let throughEasing = MotionEasing.cubicBezier(0.7, 0, 0.25, 1)
+    static let motifDuration = 0.9
+    static let productDurations: [MotionSeam: Double] = [.through: throughDuration, .motif: motifDuration]
 
     /// How a light or dither film's opening control comes in: in its look's seam out of the ground alone, where
     /// satin cuts it in as Raycast's bar did. Cut in, bolt.new's prompt box and its blob of light had nothing
@@ -183,8 +191,8 @@ nonisolated enum SeamExpansion {
             outgoing(.scale, 1, 1 + swingOut.push, last: swingOut.duration, easing: .exit)
             incoming(.rotationY, -turn * swingIn.degrees, 0, over: swingIn.duration, easing: .enterFast)
             incoming(.scale, 1 - swingIn.pull, 1, over: swingIn.duration, easing: .enterFast)
-        case .push, .fade, .flow, .stack, .expand, .wipe, .dive, .melt, .glow, .dither, .ring, .iris, .bars, .slats, .tiles, .split, .spin, .glitch,
-             .pixelate, .liquid, .flip, .cube, .flash, .stretch:
+        case .push, .fade, .flow, .stack, .expand, .wipe, .dive, .melt, .glow, .dither, .ring, .through, .motif, .iris, .bars, .slats, .tiles, .split,
+             .spin, .glitch, .pixelate, .liquid, .flip, .cube, .flash, .stretch:
             effect.transition = Transition(seam: seam, duration: duration(of: seam))
         }
         return effect
@@ -202,7 +210,7 @@ nonisolated enum SeamExpansion {
         case .glow: glowDuration
         case .dither: ditherDuration
         case .ring: ringDuration
-        default: graphicDurations[seam] ?? 0.5
+        default: productDurations[seam] ?? graphicDurations[seam] ?? 0.5
         }
     }
 }

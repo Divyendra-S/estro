@@ -45,7 +45,10 @@ extension MotionPlan {
             if after.seam == .fade, document.isEditorial {
                 transition = SeamExpansion.Transition(seam: .fade, duration: SeamExpansion.darkenDuration, easing: .enter)
             }
-            if MotionSeam.graphic.contains(after.seam) {
+            if let layer = after.seamLayer {
+                scenes[index].opensFrom = scenes[index - 1].layers.firstIndex { $0.id == layer }
+            }
+            if MotionSeam.graphic.contains(after.seam) || after.seam == .motif {
                 let grounds = [before, after].compactMap { ground(of: $0, in: document) }
                 transition?.colors = document.style.seamColors(between: grounds, background: document.canvas.background)
                 transition?.variant = index

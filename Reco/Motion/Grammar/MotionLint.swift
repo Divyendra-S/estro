@@ -451,7 +451,7 @@ nonisolated extension MotionLint {
     /// and acts after it. A detail popping in (Vantae's photo into its box) is fine; typing goes into a field that's there, a
     /// scatter throws out a stack that's there, and a shown or hidden part swaps one state for another.
     private static func carriedFindings(_ layers: [TimedLayer], scene: MotionScene) -> [Finding] {
-        guard [.stack, .expand, .dive].contains(scene.seam) else { return [] }
+        guard [.stack, .expand, .dive, .through, .motif].contains(scene.seam) else { return [] }
         let carried = SeamExpansion.duration(of: scene.seam) * carriedShare
         let byID = Dictionary(layers.map { ($0.layer.id, $0) }) { first, _ in first }
         let arriving = { (timed: TimedLayer) in

@@ -22,7 +22,7 @@ nonisolated struct MotionEdit: Codable, Equatable, Sendable {
         case setAsset = "set_asset"
         /// `scene`, at `index` or last.
         case addScene = "add_scene"
-        /// Scene `id`'s `duration`, `seam`, `shot` or `field`.
+        /// Scene `id`'s `duration`, `seam`, `by`, `shot` or `field`.
         case setScene = "set_scene"
         /// `layer` in scene `id`: added, or replacing its own layer with that id; one with a shot
         /// layer's id replaces that layer whole.
@@ -47,6 +47,7 @@ nonisolated struct MotionEdit: Codable, Equatable, Sendable {
     var layer: MotionLayer?
     var duration: Double?
     var seam: MotionSeam?
+    var seamLayer: String?
     var shot: MotionShot?
     var field: MotionField?
     var moves: [MotionMove]?
@@ -54,6 +55,7 @@ nonisolated struct MotionEdit: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case operation = "op"
         case id, target, index, canvas, style, sound, asset, scene, layer, duration, seam, shot, field, moves
+        case seamLayer = "by"
     }
 
     init(_ operation: Operation, id: String? = nil, target: String? = nil) {
@@ -183,9 +185,10 @@ nonisolated extension MotionEdit {
 
     private func setScene(in document: inout MotionDocument) throws(MotionEditError) {
         let index = try sceneIndex(in: document)
-        guard duration != nil || seam != nil || shot != nil || field != nil else { throw .init("set_scene needs duration, seam, shot or field.") }
+        guard duration != nil || seam != nil || seamLayer != nil || shot != nil || field != nil else { throw .init("set_scene needs duration, seam, by, shot or field.") }
         document.scenes[index].duration = duration ?? document.scenes[index].duration
         document.scenes[index].seam = seam ?? document.scenes[index].seam
+        document.scenes[index].seamLayer = seamLayer ?? document.scenes[index].seamLayer
         document.scenes[index].shot = shot ?? document.scenes[index].shot
         document.scenes[index].field = field ?? document.scenes[index].field
     }

@@ -69,6 +69,16 @@ nonisolated enum MotionSeam: String, Codable, CaseIterable, Sendable {
     /// ring portal): into a closing or a logo, in any look but satin's.
     case ring
 
+    // Seams made of the product's own shapes (spec 0023): the scene's `by` names the layer of the scene before they're made of.
+
+    /// The camera flies into the product's own shape (its mark, a word, an icon, a card) where it's thickest, the next scene
+    /// seen inside it, until the shape fills the frame: the next scene through the logo, or through the letters of its line.
+    case through
+
+    /// The frame turns over in a grid of the product's own shape (its mark, an avatar, a glyph), each one popping out of a dot
+    /// in the brand's colour and opening onto the next scene, in a wave out of where the shape was.
+    case motif
+
     // Graphic transitions in the brand's colours, any look (spec 0019): the devices of After Effects launch films.
 
     /// A disc of the brand's colour opens out of what was clicked (else the middle), the next scene's disc following inside it.
@@ -125,4 +135,9 @@ nonisolated extension MotionSeam {
 
     /// The graphic transitions any look may use, drawn in the brand's colours (spec 0019).
     static let graphic: Set<MotionSeam> = [.iris, .bars, .slats, .tiles, .split, .spin, .glitch, .pixelate, .liquid, .flip, .cube, .flash, .stretch]
+
+    /// The seams a scene's `by` names the layer of: those made of it, and those that open out of it (else out of what was
+    /// clicked last).
+    static let madeOfLayer: Set<MotionSeam> = [.through, .motif]
+    static let openFromLayer: Set<MotionSeam> = [.expand, .dive, .iris, .liquid, .tiles]
 }

@@ -53,7 +53,7 @@ nonisolated extension AgentToolCatalog {
         before [{action click|type, selector, text}] (stills): done on the page first, for what only exists after a click \
         (a search dialog: before clicks its button, selector names the dialog).
 
-        Scene: {id, duration, seam, shot, field (else the canvas's), layers, camera}. Shots and their slots (ui is an asset id):
+        Scene: {id, duration, seam, by, shot, field (else the canvas's), layers, camera}. Shots and their slots (ui is an asset id):
         - macro: ui and view, or items [{ui, view}] for several stops: one control so close the frame cuts it off (New \
         Raycast; glass assets over satin). view [[x,y],[w,h]] is what the frame shows, in CSS px from the element's top-left \
         corner (capture_ui gives sizes), roughly 16:9; smaller is closer, type 10–20% of the frame's height looks best; it may \
@@ -88,7 +88,12 @@ nonisolated extension AgentToolCatalog {
         frame wide, 0.27 s: a picture over a wordmark); in a look's language, over \
         the whole frame: glow (light: a front of grainy light out of the next scene's field's shape, 0.9 s), dither \
         (dither: the frame turned to the accent's dots from its edges in, then into the next scene, 0.8 s), ring (a ring \
-        of smoke opening from the middle, the next scene inside it, 1 s: into a closing). Glow or dither on the first scene, \
+        of smoke opening from the middle, the next scene inside it, 1 s: into a closing). Seams made of the product's own \
+        shapes, by naming a layer of the scene before: through (the camera flies into that layer where it's thickest, the \
+        next scene seen inside its shape, until it fills the frame, 1 s: into the logo mark, through the letters of a big \
+        line, an app icon, a chat bubble, a card), motif (the frame turns over in a grid of copies of that layer popping out \
+        of where it is, each opening onto the next scene, 0.9 s: the mark, an avatar, a glyph, a calendar day). by also \
+        names what an expand, dive, iris, liquid or tiles opens out of, instead of the last click. Glow or dither on the first scene, \
         in its look: the ground swells in from black and the scene arrives in the seam by 1.4 s. Graphic seams, any look, in \
         style.accent and a second brand colour (the gradient's other end, else the accent lighter or darker), two of a kind \
         going different ways: iris (a disc of colour opens out of what was clicked, else the middle, the next scene's disc \
@@ -153,7 +158,7 @@ nonisolated extension AgentToolCatalog {
         set_sound {sound: {style, score, effects, scoreLevel, effectsLevel}} picks the style, turns either part off or \
         moves its level (dB, -24 to 6), e.g. "no typing sounds" effects false, "quieter music" scoreLevel -6.
         Operations: set_canvas {canvas}; set_style {style}; set_sound {sound}; set_asset {asset} (adds, or replaces the same id); add_scene \
-        {scene, index}; set_scene {id, duration, seam, shot, field} (shot replaces the shot); set_layer {id, layer} (a layer of the \
+        {scene, index}; set_scene {id, duration, seam, by, shot, field} (shot replaces the shot); set_layer {id, layer} (a layer of the \
         scene's own: {id, content: {"text": {text, size, face, weight, color}} or {"ui": {asset, width, tint, typingStart, \
         presses [{key down|up, time}]: the selection moving through the results, the camera following}} (tint: the lift in \
         that one colour, a black mark made white), transform {position \
@@ -175,7 +180,8 @@ nonisolated extension AgentToolCatalog {
         "canvas":{"type":"object"},"style":{"type":"object"},"sound":{"type":"object"},"asset":{"type":"object"},"scene":{"type":"object"},"layer":{"type":"object"},
         "duration":{"type":"number"},
         "seam":{"type":"string","enum":["cut","whip","swing","flow","cutOnMotion","zoomThrough","blurCut","push","fade","stack","expand","wipe","dive",
-        "melt","glow","dither","ring","iris","bars","slats","tiles","split","spin","glitch","pixelate","liquid","flip","cube","flash","stretch"]},
+        "melt","glow","dither","ring","through","motif","iris","bars","slats","tiles","split","spin","glitch","pixelate","liquid","flip","cube","flash","stretch"]},
+        "by":{"type":"string","description":"set_scene: the layer of the scene before its seam is made of (through, motif) or opens out of"},
         "shot":{"type":"object","description":"{shot: macro|hook|title|uiHero|uiFocus|uiCascade|featureSequence|endCard|closing, text, detail, ui, items, region, view}"},
         "field":{"type":"string","enum":["satin","pool","plain","ember","sunlit","bloom","orb","ripple","matrix","warp","swirl","tide","halo","aurora","haze",
         "paper","ink","lens"]},

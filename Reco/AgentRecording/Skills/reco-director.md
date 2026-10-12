@@ -28,8 +28,13 @@ Find:
 - what it gives back, and its proof (numbers it states, customers, speed);
 - its **brand kit**, from inspect_page's `brand`: `fonts` (the heading's and body's font files), `heading` (weight,
   tracking, capitals, size), `palette` (painted colours, most area first), `gradients`, `radius` (button, card), `accent`,
-  `background`, `logo`; and by eye from the pages: its imagery (photos, illustrations, 3D, UI, none), its density, its motif
+  `background`, `logo`, `motion` (the curves its own transitions use, their middle duration, whether any overshoots, how many
+  animations run); and by eye from the pages: its imagery (photos, illustrations, 3D, UI, none), its density, its motif
   (a grid, a waveform, code, a map, a chart, paper, a terminal).
+- its **things**, which its transitions will be made of (section 8): its **mark** (the logo's symbol, else the first letter
+  of its wordmark, lifted bare from `brand.logo`), its **control** (the one button or field a user always touches: send,
+  record, search, run, book), its **object** (what it makes or moves, drawn the way its UI draws it: a lead's row, an email,
+  a clip, a meeting, a PR, a chart, a person's avatar) and its **word** (the one word of its line that carries the idea).
 
 ## 2. The brief
 
@@ -74,7 +79,12 @@ Every film is drawn in the product's own taste. Set it once with set_style and s
 
 ## 4. The motion personality: its curves and its transitions
 
-| Personality | Moves | Its signature transitions (at the film's turns) | Between them |
+The site's own motion (`brand.motion`) says which personality it is before its words do: curves that overshoot are playful
+(or bold, with a loud voice); quick ones (under 200 ms) easing out are precise; long ones (over 400 ms) easing in and out are
+calm; a site with nothing moving is editorial or precise. Move as it moves: overshoot only if it does, and give the film's
+entrances and swaps about its duration (a 150 ms site's things snap in; a 600 ms site's glide).
+
+| Personality | Moves | Its seams, beside those made of the product (section 8) | Between them |
 |---|---|---|---|
 | **Precise** (developer tools, infra, data) | quick, no overshoot; `type`, `blurWipe`, `lineMask`, `cascade` | the look's seam, `flow`, `whip`, `expand` | `stack`, cuts onto motion |
 | **Calm, premium** (design, finance, AI assistants) | slow settles, never a bounce; `brighten`, `wordByWord`, `fly` | the look's seam, `flow`, `dive`, `expand` | `stack`, cuts onto motion |
@@ -112,7 +122,8 @@ counting through them in the order listed (variation 3 of two options is the fir
 
 - the **story shape** (section 5);
 - the **ground** (section 3's row for the brand);
-- the **signature transition**: the one of the personality's list (section 4) the film uses at its biggest turn.
+- the **signature transition**: which of the product's things (section 8's first table) the film's biggest turn is made
+  of, and how.
 
 Two runs for one product must differ in all three.
 
@@ -154,9 +165,27 @@ So write the film as actions before you write any scene: one line each, a verb o
 | Words | `brighten`, `letters`, `kinetic`, `sweep`, `wordByWord`, a line laid big over the product's pictures | editorial, motion design |
 | The name | `unfold` (mark into name and line), `letters`, `fly`, `ring` into the logo | editorial, motion design, story |
 
-## 8. Transitions: each one has a reason
+## 8. Transitions: made of the product, each with a reason
 
-Every change of scene comes out of an action, and you can name its reason:
+A film whose transitions any product could have (a stack, a cut, a whip) is a template. Its turns are made of **this
+product's own things** (section 1), so two products never get the same film:
+
+| The product's thing | Its transition | Use it |
+|---|---|---|
+| Its mark | `through` by the mark: the camera flies into its symbol, the next scene seen inside its shape, until it fills the frame | from the opening into the first answer, or from the last answer into the end card |
+| Its word | `through` by a big line: the next scene seen through its letters, then through one letter's stroke | after a statement, into what it means |
+| Its control | `expand` or `dive` by it: the next scene opens out of the button or field that was pressed | a request sent, a run started |
+| Its object | `flow`: the same id in both scenes, it travels and becomes the next scene's thing (a row becomes the email, the email the meeting) | between two steps of the product's work |
+| Its object, many | `motif` by it (or the mark): the frame turns over in a grid of copies of it popping out of where it was, each opening onto the next scene | when many of them arrive: leads found, files made, meetings booked |
+| A card, bubble or cell | `through` by it: into what it holds | a detail opening |
+
+- A film uses **at least three of these**, each made of a different thing, at its three biggest turns (the opening, the
+  first answer, the end words). `by` on the scene names the layer of the scene before: give it the mark, the word, the
+  control or the object, at least 150 px tall (a `through` into a small thing is a cut). The mark is lifted bare
+  (`ui` with the logo's selector) or set as a text layer of its letter in the brand's face, never a circle standing for it.
+- A `through` lands best on a scene that is full from its first frame: it is seen through the shape before the shape opens.
+
+The rest are the seams between them, each with a reason:
 
 | What happens | Seam on the next scene |
 |---|---|
@@ -169,7 +198,8 @@ Every change of scene comes out of an action, and you can name its reason:
 | The end words into the logo | `ring`, the logo on `halo` |
 | The next scene moves on its first frame (typing, a pop at 0, a scatter) | `cut` |
 
-- At least four kinds in a film; never the same seam on two scene changes running; never more than two cuts running.
+- At least five kinds in a film; never the same seam on two scene changes running; never more than two cuts running; never
+  more than two `stack`s in a film.
 - Never a cut onto or from something still, and never onto an empty ground: a caret alone or one small word reads as nothing
   happening. Cut into a frame that is full from its first frame (a big line, a grid, a card whole), or match the cut: the
   thing the last scene ended on is in the same place, the same size or the same colour as the first thing of the next.
@@ -209,7 +239,8 @@ overshoot only in a playful film, never on type.
    - Its findings: every one that says **the picture stands still** names a scene to fix: give it an action from section 7
      or cut it shorter. The film is done only when none is left.
    - Does the first frame move, and do the first words read by 2 s?
-   - Can you say each scene's action in one verb, and each transition's reason? Six or more actions, four or more seams?
+   - Can you say each scene's action in one verb, and each transition's reason? Six or more actions, five or more seams,
+     three of them made of the product's own things? Cover the logo: could the transitions belong to another product?
    - Is every line in the brand's own face, its colours and its corners? Would someone who knows the product's site
      recognise it with the logo covered?
    - Is anything small in a void, tilted, a grey bar, or a dense panel? Rebuild it bigger and simpler.

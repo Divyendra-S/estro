@@ -112,7 +112,46 @@ enum WebInspectScript {
           uppercase: style.textTransform === 'uppercase', size: Math.round(size / innerWidth * 1000) / 1000
         },
         palette: paletteOf(), gradients: gradientsOf(),
-        radius: { button: actions[0]?.radius, card: cardRadius() }
+        radius: { button: actions[0]?.radius, card: cardRadius() }, motion: motionOf()
+      };
+    };
+    // How the site moves (spec 0023): the curves its transitions and animations use on its first three screens, most used
+    // first, their middle duration, whether any overshoots, and how many animations run
+    const motionOf = () => {
+      const curves = new Map();
+      const durations = [];
+      const count = (curve, duration) => {
+        if (!curve || !(duration > 0)) return;
+        curves.set(curve, (curves.get(curve) || 0) + 1);
+        durations.push(duration);
+      };
+      const milliseconds = (value) => value.split(',').map((part) => parseFloat(part) * (part.trim().endsWith('ms') ? 1 : 1000));
+      for (const element of document.querySelectorAll('body *')) {
+        const box = element.getBoundingClientRect();
+        if (box.width < 4 || box.height < 4 || box.top > innerHeight * 3) continue;
+        const style = getComputedStyle(element);
+        const times = milliseconds(style.transitionDuration);
+        style.transitionTimingFunction.split(/,(?![^(]*\))/).forEach((curve, index) => count(curve.trim(), times[index % times.length]));
+      }
+      const running = document.getAnimations ? document.getAnimations() : [];
+      for (const animation of running) {
+        const timing = animation.effect?.getTiming?.();
+        if (timing) count(timing.easing, Number(timing.duration));
+      }
+      const overshoots = (curve) => {
+        const bezier = /cubic-bezier\(([^)]*)\)/.exec(curve);
+        if (bezier) {
+          const [, y1, , y2] = bezier[1].split(',').map(Number);
+          return y1 < 0 || y1 > 1 || y2 < 0 || y2 > 1;
+        }
+        const linear = /linear\(([^)]*)\)/.exec(curve);
+        return linear ? linear[1].split(',').some((point) => parseFloat(point) > 1.001) : false;
+      };
+      const ranked = [...curves.entries()].sort((first, second) => second[1] - first[1]).map(([curve]) => curve);
+      durations.sort((first, second) => first - second);
+      return {
+        easings: ranked.slice(0, 3), duration: durations.length ? Math.round(durations[durations.length >> 1]) : undefined,
+        overshoot: ranked.some(overshoots), running: running.length
       };
     };
     // A family as people name it: next/font's "__Inter_d65c78" is Inter

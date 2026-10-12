@@ -17,6 +17,10 @@ nonisolated struct MotionScene: Equatable, Sendable, Identifiable {
     /// How it begins after the scene before.
     var seam = MotionSeam.cut
 
+    /// The layer of the scene before its seam is made of or opens out of (spec 0023): a `through` flies into it, a `motif`
+    /// is a grid of it; an expand, dive, iris, liquid or tiles open out of it instead of what was clicked last.
+    var seamLayer: String?
+
     /// What it's drawn over, when not the canvas's field: `halo` behind an end card.
     var field: MotionField?
 
@@ -46,10 +50,16 @@ nonisolated extension MotionScene: Codable {
         duration = try container.decode(Double.self, forKey: .duration)
         shot = try container.decodeIfPresent(MotionShot.self, forKey: .shot)
         seam = try container.decodeIfPresent(MotionSeam.self, forKey: .seam) ?? .cut
+        seamLayer = try container.decodeIfPresent(String.self, forKey: .seamLayer)
         field = try container.decodeIfPresent(MotionField.self, forKey: .field)
         picture = try container.decodeIfPresent(LensPicture.self, forKey: .picture)
         layers = try container.decodeIfPresent([MotionLayer].self, forKey: .layers) ?? []
         shotMoves = try container.decodeIfPresent([String: [MotionMove]].self, forKey: .shotMoves) ?? [:]
         camera = try container.decodeIfPresent(MotionCamera.self, forKey: .camera) ?? MotionCamera()
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, duration, shot, seam, field, picture, layers, shotMoves, camera
+        case seamLayer = "by"
     }
 }

@@ -38,6 +38,7 @@ nonisolated struct MotionDocument: Equatable, Sendable {
         guard !scenes.isEmpty else { throw .noScenes }
         let assetIDs = try validatedAssetIDs()
         var sceneIDs = Set<String>()
+        var before: Set<String>?
         for (index, scene) in scenes.enumerated() {
             guard sceneIDs.insert(scene.id).inserted else { throw .duplicateID(scene.id) }
             // At least a frame, so every scene shows
@@ -52,6 +53,44 @@ nonisolated struct MotionDocument: Equatable, Sendable {
             var layerIDs = Set<String>()
             try validate(scene.layers, ids: &layerIDs, assets: assetIDs)
             try validateShotMoves(of: index)
+            try Self.validateSeam(of: scene, after: before)
+            before = layerIDs.union(shotLayerIDs(of: index))
+        }
+    }
+
+    /// A scene's `by` names a layer of the scene before (`before`, its layers' ids; `nil` for the first scene), on a seam that
+    /// takes one.
+    private static func validateSeam(of scene: MotionScene, after before: Set<String>?) throws(MotionDocumentError) {
+        if let reason = seamProblem(of: scene, after: before) {
+            throw .invalidSeam(scene.id, reason)
+        }
+    }
+
+    private static func seamProblem(of scene: MotionScene, after before: Set<String>?) -> String? {
+        guard let layer = scene.seamLayer else {
+            return MotionSeam.madeOfLayer.contains(scene.seam)
+                ? "a \(scene.seam.rawValue) needs by: the layer of the scene before it's made of (its mark, a word, an icon, a card)." : nil
+        }
+        guard MotionSeam.madeOfLayer.union(MotionSeam.openFromLayer).contains(scene.seam) else {
+            return "by names what a through or motif is made of, or what an expand, dive, iris, liquid or tiles opens out of; a \(scene.seam.rawValue) has none."
+        }
+        guard let before else { return "by names a layer of the scene before, and the first scene has none." }
+        return before.contains(layer) ? nil : "by names \"\(layer)\", which the scene before doesn't have."
+    }
+
+    /// The ids of the layers scene `index`'s shot lays out, if it has one.
+    private func shotLayerIDs(of index: Int) -> Set<String> {
+        guard scenes[index].shot != nil else { return [] }
+        return Self.ids(of: DocumentExpansion.laidOut(self, scene: index, sizes: [:]).layers)
+    }
+
+    /// Every id in `layers`, their groups' too.
+    private static func ids(of layers: [MotionLayer]) -> Set<String> {
+        layers.reduce(into: Set<String>()) { ids, layer in
+            ids.insert(layer.id)
+            if case .group(let children) = layer.content {
+                ids.formUnion(Self.ids(of: children))
+            }
         }
     }
 

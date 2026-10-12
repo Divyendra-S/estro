@@ -37,10 +37,11 @@ nonisolated extension MotionFrameRenderer {
         case .glow, .dither, .ring:
             return FieldRenderer.seam(transition, between: (previous, frame), progress: progress, at: plan.scenes[index].start + time, size: bounds.size)
         case let seam where MotionSeam.graphic.contains(seam):
-            let origin = clickedBox(into: index, at: time, plan: plan).map { CGPoint(x: $0.midX, y: $0.midY) }
+            let origin = (seamLayerBox(into: index, at: time, plan: plan) ?? clickedBox(into: index, at: time, plan: plan)).map { CGPoint(x: $0.midX, y: $0.midY) }
             return TransitionRenderer.draw(transition, between: (previous, frame), at: (progress, time), origin: origin, size: bounds.size)
         default:
-            return before.fading(to: 1 - progress).composited(over: next)
+            // A through or motif, made of a layer of the scene before; else a fade
+            return madeOfLayer((previous, frame), into: index, at: time, progress: progress, plan: plan) ?? before.fading(to: 1 - progress).composited(over: next)
         }
     }
 
@@ -187,13 +188,13 @@ nonisolated extension MotionFrameRenderer {
             ?? next
     }
 
-    /// Where an expand or dive seam into scene `index` opens from, in output pixels: the box of the last layer the scene before
-    /// clicked, where it is `time` into the seam (that scene goes on under it, its camera drifting); without a click, the
-    /// frame's middle.
+    /// Where an expand or dive seam into scene `index` opens from, in output pixels: the box of the layer its `by` names, else of
+    /// the last layer the scene before clicked, where it is `time` into the seam (that scene goes on under it, its camera
+    /// drifting); without either, the frame's middle.
     static func expandSource(into index: Int, at time: Double = 0, plan: MotionPlan) -> CGRect {
         let (width, height) = (Double(plan.outputSize.width), Double(plan.outputSize.height))
         let middle = CGRect(x: width * (1 - expandMiddle) / 2, y: height * (1 - expandMiddle) / 2, width: width * expandMiddle, height: height * expandMiddle)
-        return clickedBox(into: index, at: time, plan: plan) ?? middle
+        return seamLayerBox(into: index, at: time, plan: plan) ?? clickedBox(into: index, at: time, plan: plan) ?? middle
     }
 
     /// The box of the last layer the scene before scene `index` clicked, where it is `time` into the seam, in output pixels.
@@ -219,6 +220,10 @@ nonisolated extension MotionFrameRenderer {
         if let reach = graphicTravel[transition.seam] {
             // Their edges cross about this share of the frame's width over the seam, on curves up to 4 times as fast as even
             return abs(closes - opens) * reach * Double(size.width) * graphicPeak
+        }
+        if transition.seam == .through, let pole = seamPole(into: index, at: time, plan: plan) {
+            let rim = min(throughRim * pole.radius, throughRimMost * size.height / 1080)
+            return abs(closes - opens) * log(throughReach(of: pole, rim: rim, size: size)) * size.height / 2
         }
         guard [.stack, .expand, .dive].contains(transition.seam) else { return 0 }
         guard transition.seam == .dive else { return abs(closes - opens) * size.height }

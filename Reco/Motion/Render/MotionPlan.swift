@@ -147,6 +147,10 @@ nonisolated struct MotionPlan: Sendable {
         /// How the scene comes in over the one before, drawn under it meanwhile.
         var transition: SeamExpansion.Transition?
 
+        /// The layer of the scene before its seam is made of or opens out of, and where that's thickest (spec 0023).
+        var opensFrom: Int?
+        var pole: Pole?
+
         /// How an opening macro's control comes in over its ground alone, a breath in (``ShotLayout/macroBreath``): in a
         /// light or dither film, its look's seam. Any other opening arrives in the seam named on it, its ground swelled in.
         var arrival: SeamExpansion.Transition?
@@ -429,6 +433,7 @@ extension MotionPlan {
                 }
             }
         }
+        scenes = posed()
     }
 
     /// Asks for `lifted`'s still to be lifted when it's missing or softer than the layer `key` shows

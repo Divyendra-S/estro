@@ -26,7 +26,9 @@ struct BrandKitTests {
             </style></head><body style="margin: 0; background: rgb(250, 250, 250)">
             <h1>Launch videos</h1>
             <div style="height: 200px; background: linear-gradient(90deg, rgb(255, 90, 31), rgb(122, 44, 255))"></div>
-            <a href="#" style="display: inline-block; width: 200px; height: 50px; border-radius: 999px; background: rgb(255, 90, 31)">Start</a>
+            <a href="#" style="display: inline-block; width: 200px; height: 50px; border-radius: 999px; background: rgb(255, 90, 31);
+              transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1)">Start</a>
+            <p style="transition: opacity 300ms ease-out">One</p><p style="transition: opacity 300ms ease-out">Two</p>
             </body></html>
             """
         var script = WebScript()
@@ -43,6 +45,7 @@ struct BrandKitTests {
         #expect(brand.gradients?.first == ["#ff5a1f", "#7a2cff"])
         #expect(brand.radius?.button == 999)
         #expect(brand.palette?.first == "#fafafa")
+        #expect(brand.motion?.easings.first == "ease-out" && brand.motion?.overshoot == true && brand.motion?.duration == 300, "\(String(describing: brand.motion))")
     }
 
     /// A document's font is fetched into its bundle, and text set in it is drawn in it: wider than SF Pro in Courier New.

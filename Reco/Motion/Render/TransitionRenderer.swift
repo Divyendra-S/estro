@@ -128,7 +128,7 @@ nonisolated enum TransitionRenderer {
 
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Reco", category: "TransitionRenderer")
 
-    private static let kernelNames = ["irisSeam", "barsSeam", "slatsSeam", "tilesSeam", "glitchSeam", "pixelSeam", "liquidSeam", "spinSeam"]
+    private static let kernelNames = ["irisSeam", "barsSeam", "slatsSeam", "tilesSeam", "glitchSeam", "pixelSeam", "liquidSeam", "spinSeam", "motifSeam"]
 
     /// Compiled from `TransitionKernels.metal.txt` the first time one is drawn, each alone, as the fields are.
     private static let kernels: [String: CIKernel] = {
@@ -147,7 +147,7 @@ nonisolated enum TransitionRenderer {
     }()
 
     /// A kernel over the frame, sampling its scenes anywhere: they're clamped, so any region of them is there.
-    private static func apply(_ name: String, _ arguments: [Any], size: CGSize) -> CIImage? {
+    static func apply(_ name: String, _ arguments: [Any], size: CGSize) -> CIImage? {
         kernels[name]?.apply(extent: CGRect(origin: .zero, size: size), roiCallback: { _, rect in rect.insetBy(dx: -size.width, dy: -size.height) }, arguments: arguments)
     }
 

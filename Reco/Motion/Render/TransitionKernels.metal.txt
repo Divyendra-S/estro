@@ -190,3 +190,70 @@ inline float4 dimmed(float4 color, float by) { return float4(color.rgb * (1.0 - 
     return sum / float(taps);
 }
 #endif
+
+#ifdef motifSeam_ONLY
+namespace motif {
+
+/// CSS's out-back: past 1 by a tenth, then back.
+inline float outBack(float t) {
+    float u = t - 1.0;
+    return 1.0 + 2.70158 * u * u * u + 1.70158 * u * u;
+}
+
+/// How large a cell's shape is `t` of its way: popping out of nothing to its size in the cell over the first `pop` of it, a
+/// tenth past it and back, then growing on to `most` times that, slowly at first, until it covers the cell.
+inline float grown(float t, float most, float pop) {
+    if (t <= 0.0) return 0.0;
+    if (t < pop) return max(outBack(t / pop), 0.0);
+    float u = (t - pop) / (1.0 - pop);
+    return 1.0 + (most - 1.0) * u * u;
+}
+
+}
+
+/// A motif (``MotionSeam/motif``): the frame turns over in a grid of `shape` (the product's own: its mark, an avatar, a glyph),
+/// each cell's copy popping out of nothing in its own colours in a wave out of the origin, turning upright as it comes, then
+/// growing until it fills its cell, the next scene showing inside a copy that follows it; the scene before dims under them.
+/// `grid`: a cell's side (pixels), the wave's share of the seam, the origin. `place`: the shape's pole (its pixels), output pixels
+/// a shape pixel at its size in the cell, how many times that it grows to. `extra`: how far the next scene follows, the turn
+/// (radians), the pop's share of a cell's way.
+[[stitchable]] float4 motifSeam(coreimage::sampler before, coreimage::sampler next, coreimage::sampler shape, float4 frame, float4 grid, float4 place,
+                                float4 extra, coreimage::destination dest) {
+    float2 p = dest.coord();
+    float side = grid.x;
+    float2 o = grid.zw;
+    float far = max(max(length(o), length(o - float2(frame.x, 0.0))), max(length(o - frame.xy), length(o - float2(0.0, frame.y))));
+    float2 cell = floor((p - o) / side + 0.5);
+    float4 drawn = float4(0.0);
+    float window = 0.0;
+    for (int dy = -1; dy <= 1; dy++) {
+        for (int dx = -1; dx <= 1; dx++) {
+            float2 index = cell + float2(dx, dy);
+            float2 centre = o + index * side;
+            // A cell whose middle is past the frame's corner starts with the farthest
+            float t = saturate((frame.w - min(length(centre - o) / far, 1.0) * grid.y) / (1.0 - grid.y));
+            // The next scene follows the copy as it pops, and catches it up as it grows, so the two cover the cell together
+            float shown = motif::grown(t, place.w, extra.z);
+            float seen = motif::grown(t - extra.x * saturate((1.0 - t) / (1.0 - extra.z)), place.w, extra.z);
+            // Neighbours turn opposite ways, upright once popped
+            float way = fmod(abs(index.x + index.y), 2.0) < 0.5 ? 1.0 : -1.0;
+            float turn = extra.y * way * (1.0 - smoothstep(0.0, extra.z, t));
+            float2 d = p - centre;
+            d = float2(cos(turn) * d.x - sin(turn) * d.y, sin(turn) * d.x + cos(turn) * d.y);
+            if (shown > 1e-3) {
+                float4 own = shape.sample(shape.transform(place.xy + d / (place.z * shown)));
+                drawn = own + drawn * (1.0 - own.a);
+            }
+            if (seen > 1e-3) {
+                window = max(window, shape.sample(shape.transform(place.xy + d / (place.z * seen))).a);
+            }
+            // The own cell fills at the end of its way, what its copy didn't cover
+            if (dx == 0 && dy == 0) {
+                window = max(window, smoothstep(0.9, 1.0, t));
+            }
+        }
+    }
+    float4 under = drawn + seam::dimmed(seam::at(before, p), 0.3 * frame.w) * (1.0 - drawn.a);
+    return mix(under, seam::at(next, p), saturate(window));
+}
+#endif

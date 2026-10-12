@@ -84,6 +84,24 @@ nonisolated struct PageInspection: Codable, Equatable, Sendable {
 
         /// The files of the faces the heading and the body are set in, to set the video in them.
         var fonts: [Font]?
+
+        /// How the site moves, for the video to move as it does (spec 0023).
+        var motion: Motion?
+    }
+
+    nonisolated struct Motion: Codable, Equatable, Sendable {
+
+        /// The CSS timing functions its transitions and animations use on its first three screens, most used first.
+        var easings: [String]
+
+        /// Their middle duration, in milliseconds; `nil` when nothing moves.
+        var duration: Double?
+
+        /// Whether any of them goes past its end and back.
+        var overshoot: Bool
+
+        /// How many animations were running as the page was read.
+        var running: Int
     }
 
     nonisolated struct Heading: Codable, Equatable, Sendable {

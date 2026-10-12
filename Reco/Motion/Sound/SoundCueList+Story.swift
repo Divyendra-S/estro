@@ -23,7 +23,8 @@ nonisolated extension SoundCueList {
     }
 
     private mutating func seam(_ seam: MotionSeam, at time: Double, lasting duration: Double) {
-        guard !(MotionSeam.graphic.contains(seam) || seam == .flow) else { return graphic(seam, at: time, lasting: duration) }
+        // A motif sounds as tiles do
+        guard !(MotionSeam.graphic.contains(seam) || seam == .flow || seam == .motif) else { return graphic(seam == .motif ? .tiles : seam, at: time, lasting: duration) }
         switch seam {
         case .dither:
             add(.bits(length: duration), .effects, at: time, level: SoundRules.bitsLevel, send: 0.25)
@@ -55,7 +56,7 @@ nonisolated extension SoundCueList {
             let open = time + riser.peak * duration
             add(.riser(length: riser.length, low: riser.low, high: riser.high, power: riser.power), .effects, at: open, level: riser.level, send: 0.3)
             add(.glass(note: glass.note, length: glass.length, brightness: glass.brightness), .effects, at: open, level: glass.level, pan: 0.1, send: 0.45)
-        case .dive:
+        case .dive, .through:
             let (riser, landing) = (SoundRules.diveRiser, SoundRules.diveLanding)
             let fastest = time + riser.peak * duration
             add(.riser(length: riser.length, low: riser.low, high: riser.high, power: riser.power), .effects, at: fastest, level: riser.level, send: 0.3)
