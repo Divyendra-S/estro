@@ -53,9 +53,11 @@ nonisolated extension MotionFrameRenderer {
                 image = drawn?.composited(over: image) ?? image
                 continue
             }
+            // Each keeps its own shape on the way, scaled evenly onto where the carried layer is: drawn into the quad between
+            // their places, Cardinal's line, wider in one scene than the other, stretched as it went
             let opacity = max(from.opacity, placement.opacity)
-            let out = mixed(from, placement, progress, layer: from.layer, opacity: opacity * (1 - look))
-            let into = mixed(from, placement, progress, layer: placement.layer, opacity: opacity * look)
+            let out = fitted(from, onto: mixed(from, placement, progress, layer: from.layer, opacity: opacity * (1 - look)))
+            let into = fitted(placement, onto: mixed(from, placement, progress, layer: placement.layer, opacity: opacity * look))
             if look < 1, let drawn = layerImage(out, in: index - 1, over: field, at: past, placements: leaving, plan: plan, frames: frames) {
                 image = drawn.composited(over: image)
             }
@@ -88,6 +90,35 @@ nonisolated extension MotionFrameRenderer {
         return opening.compactMap { key, start in
             closing[key].map { end in zip(start, end).map { hypot($0.x - $1.x, $0.y - $1.y) }.max() ?? 0 }
         }.max() ?? 0
+    }
+
+    /// `placement` with `own`'s corners, scaled evenly about their middle to cover as much as its own and moved onto its middle,
+    /// and the room its letters spring through with them: without it, Cardinal's line, drawn with its room into its bare box,
+    /// came out squashed.
+    private static func fitted(_ own: MotionPlan.Placement, onto placement: MotionPlan.Placement) -> MotionPlan.Placement {
+        let (size, target) = (area(of: own.corners), area(of: placement.corners))
+        guard own.corners.count == placement.corners.count, !own.corners.isEmpty, size > 1e-6 else { return placement }
+        let (from, onto, scale) = (middle(of: own.corners), middle(of: placement.corners), (target / size).squareRoot())
+        let moved = { (corners: [CGPoint]) in corners.map { CGPoint(x: onto.x + ($0.x - from.x) * scale, y: onto.y + ($0.y - from.y) * scale) } }
+        var fitted = placement
+        fitted.corners = moved(own.corners)
+        fitted.roomCorners = own.roomCorners.map(moved)
+        return fitted
+    }
+
+    private static func middle(of corners: [CGPoint]) -> CGPoint {
+        let count = Double(corners.count)
+        return CGPoint(x: corners.reduce(0.0) { $0 + $1.x } / count, y: corners.reduce(0.0) { $0 + $1.y } / count)
+    }
+
+    /// A quad's area, whichever way round (the shoelace formula).
+    private static func area(of corners: [CGPoint]) -> Double {
+        var twice = 0.0
+        for (index, corner) in corners.enumerated() {
+            let next = corners[(index + 1) % corners.count]
+            twice += corner.x * next.y - next.x * corner.y
+        }
+        return abs(twice) / 2
     }
 
     /// `progress` of the way from `from` to `to`, as the layer at `layer` with `opacity`.

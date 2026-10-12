@@ -1537,6 +1537,7 @@ stack, expand or dive whose scene is mostly not there yet (`carried`), and the d
 |---|---|
 | `Motion/Render/MotionFrameRenderer+Seams.swift` | `expanded` (container transform), `stacked` (lit edge, lift), `edgeLight`; both frames cut to the frame in `transitioned` |
 | `Motion/Grammar/MotionLint.swift` (`carriedFindings`) | Half a carried scene's parts missing by its seam's middle is named |
+| `Motion/Render/MotionFrameRenderer+Handoff.swift` (`fitted`) | A carried text, picture or UI layer keeps its shape and its letters' room on the way |
 | `AgentRecording/Skills/reco-director.md` | Section 8: no cut onto an empty ground, match cuts, carried scenes whole |
 
 Key facts:
@@ -1627,7 +1628,7 @@ should hold but need re-measuring.
 | S14 brand taste and graphic transitions (spec 0019) | Thirteen graphic seams in the brand's colours, the brand's fonts, palette, gradients and radii scraped and its type drawn in its own face, the director's personalities and variation. Next: films from the app, the user's verdict |
 | S15 the After Effects bar (spec 0020) | Camera angle, arc and depth of field, `swing`, `flow` (shared element and layered handoff), the `pool` ground, small and flat checks, the director's craft section, after the user found Cardboard 2 basic. Next: Cardboard from the app, the user's verdict |
 | S16 films are actions (spec 0021) | The picture-still check in `preview_motion`, the director rewritten around actions and UI facing the viewer, after the user found Cardboard 5 static. Next: Cardboard from the app, the user's verdict |
-| S17 transitions that read (spec 0022) | Expand as a container transform, a lit stack, seams sized by the frame, the `carried` lint and the director's cut rules, after the user asked for better transitions on Cardboard 6. Next: the user's verdict on `Cardboard 6 carried`, a new film from the app |
+| S17 transitions that read (spec 0022) | Expand as a container transform, a lit stack, seams sized by the frame, the `carried` lint and the director's cut rules, after the user asked for better transitions on Cardboard 6. A Cardinal film from the app (29 s, 4K60). Next: the user's verdict |
 
 What to build next: `docs/specs/0012-motion-quality.md` (October 2026), phases Q1–Q6; spec 0011's phases 5–7 wait for it. The earlier
 order: `docs/specs/0009-stand-out-roadmap.md`. The N items' details, ranked from a September 2026 survey of competitors and Apple's on-device APIs:

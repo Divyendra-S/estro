@@ -114,6 +114,27 @@ struct CameraCraftTests {
         #expect(color[0] > 60 && color[2] > 60 && color[1] < 40, "\(color)")
     }
 
+    /// A line carried from one size to another keeps its shape on the way, its letters' room with it: drawn into the quad between
+    /// its places without that room, Cardinal's end line came out squashed.
+    @Test func aCarriedLineKeepsItsShape() async throws {
+        let json = #"""
+            {"version": 1, "canvas": {"background": "#000000"}, "scenes": [
+              {"id": "one", "duration": 2, "camera": {"moves": [{"move": "hold"}]}, "layers": [
+                {"id": "line", "transform": {"position": [960, 500, 0]}, "content": {"text": {"text": "Design how you sell.", "size": 112}},
+                 "moves": [{"move": "letters", "start": 0.1}]}]},
+              {"id": "two", "duration": 2, "seam": "flow", "camera": {"moves": [{"move": "hold"}]}, "layers": [
+                {"id": "line", "transform": {"position": [960, 700, 0]}, "content": {"text": {"text": "Design how you sell.", "size": 72}}}]}]}
+            """#
+        let plan = await MotionPlan.build(try JSONDecoder().decode(MotionDocument.self, from: Data(json.utf8)), bundle: URL.temporaryDirectory, shorterSide: 540)
+        let shape = { (time: Double) throws -> Double in
+            let box = try #require(Self.ink(of: MotionFrameRenderer.image(at: time, plan: plan), size: plan.outputSize))
+            return box.width / box.height
+        }
+        let (settled, carried) = (try shape(plan.scenes[1].start + 1.5), try shape(plan.scenes[1].start + MotionPlan.flowCarry.duration * 0.4))
+
+        #expect(abs(carried / settled - 1) < 0.12, "\(carried) \(settled)")
+    }
+
     /// The pool lights its middle in the brand's hue over the background, which its corners keep.
     @Test func aPoolLightsItsMiddle() throws {
         let background = try #require(RGBAColor(hex: "#08090a"))
@@ -143,6 +164,20 @@ struct CameraCraftTests {
     // MARK: - Helpers
 
     private static let context = CIContext(options: [.workingColorSpace: NSNull()])
+
+    /// The box round the pixels brighter than half in `image`, `size` big.
+    private static func ink(of image: CIImage, size: CGSize) -> CGRect? {
+        let (width, height) = (Int(size.width), Int(size.height))
+        var bytes = [UInt8](repeating: 0, count: width * height * 4)
+        context.render(image, toBitmap: &bytes, rowBytes: width * 4, bounds: CGRect(origin: .zero, size: size), format: .RGBA8, colorSpace: nil)
+        var box: CGRect?
+        for row in 0..<height {
+            for column in 0..<width where bytes[(row * width + column) * 4] > 128 {
+                box = (box ?? CGRect(x: column, y: row, width: 1, height: 1)).union(CGRect(x: column, y: row, width: 1, height: 1))
+            }
+        }
+        return box
+    }
 
     /// The RGB bytes of the pixel at `point` (Core Image's coordinates, from the bottom left).
     private static func color(of image: CIImage, at point: CGPoint) throws -> [UInt8] {

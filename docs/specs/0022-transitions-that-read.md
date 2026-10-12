@@ -45,6 +45,13 @@ A stack, an expand and a dive carry the next scene in whole. When half or more o
 shown/hidden swaps don't count, so Vantae's photo popping into its box under an expand passes. On Cardboard 6 it names the
 expand's checklist rows and the stack's clips, not the scatter into the video wall.
 
+## Flow: a carried layer keeps its shape
+
+A layer that isn't a rectangle (text, a picture, UI) was drawn into the quad between its two places, and a text revealed by
+`letters` lost the room its letters spring through: Cardinal's "Design how you sell.", 112 px on a card into 72 px under the
+name, came out 2.7 times too wide on the way. Each of its two drawings now keeps its own shape, scaled evenly about its middle to
+the carried quad's area and moved onto its middle, its room with it.
+
 ## The director
 
 Section 8 adds: never cut onto an empty ground; cut into a frame full from its first frame, or match the cut (the same place,
@@ -56,7 +63,12 @@ size or colour). A stack, expand or dive carries its scene whole and acts after 
 (the checklist's cascade and the clips' pops removed), exported at 4K60 (`… carried-edited.mp4`, 139 s, M5, Debug). The expand
 reads as the send button growing into a card showing the checklist, the stack as a sheet carrying the clip grid.
 
+A film from the app on trycardinal.com (Claude Code, variation 6, 24.5 min, 29 s at 4K60, `~/Movies/Reco/Cardinal-edited.mp4`,
+re-exported with the flow fix) is still 23 % of the time and uses three stacks, an expand, a match cut on its orange and a flow
+into the end card. Its stacks carry their scenes whole and its expand grows out of the send button.
+
 ## Open
 
 - A cut's quality is only a rule for the agent; nothing measures an empty frame after a cut yet.
 - The user hasn't seen these seams yet.
+- In Cardinal's flow the end card's name fades in while the carried line still passes under it, for about a quarter second.
