@@ -8,14 +8,20 @@
 
 <table>
   <tr>
-    <td width="33%"><a href="docs/media/cardboard.mp4"><img src="docs/media/cardboard.webp" alt="Cardboard launch film"></a></td>
-    <td width="33%"><a href="docs/media/calcom.mp4"><img src="docs/media/calcom.webp" alt="Cal.com launch film"></a></td>
-    <td width="33%"><a href="docs/media/spotify.mp4"><img src="docs/media/spotify.webp" alt="Spotify Jam launch film"></a></td>
+    <td width="50%">
+      <a href="docs/media/cardboard.mp4"><img src="docs/media/cardboard.webp" alt="Cardboard launch film" width="100%"></a><br>
+      <b>Cardboard</b>: an AI video editor's launch, 26 s · <a href="docs/media/cardboard.mp4">▶ Watch with sound</a>
+    </td>
+    <td width="50%">
+      <a href="docs/media/calcom.mp4"><img src="docs/media/calcom.webp" alt="Cal.com launch film" width="100%"></a><br>
+      <b>Cal.com</b>: one person's request told through the product, 34 s · <a href="docs/media/calcom.mp4">▶ Watch with sound</a>
+    </td>
   </tr>
   <tr>
-    <td><b>Cardboard</b>: an AI video editor's launch, 26 s<br><a href="docs/media/cardboard.mp4">▶ Watch with sound</a></td>
-    <td><b>Cal.com</b>: one person's request told through the product, 34 s<br><a href="docs/media/calcom.mp4">▶ Watch with sound</a></td>
-    <td><b>Spotify Jam</b>: one object morphing from state to state, 19 s<br><a href="docs/media/spotify.mp4">▶ Watch with sound</a></td>
+    <td colspan="2" align="center">
+      <a href="docs/media/spotify.mp4"><img src="docs/media/spotify.webp" alt="Spotify Jam launch film" width="50%"></a><br>
+      <b>Spotify Jam</b>: one object morphing from state to state, 19 s · <a href="docs/media/spotify.mp4">▶ Watch with sound</a>
+    </td>
   </tr>
 </table>
 
