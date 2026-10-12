@@ -27,7 +27,8 @@ nonisolated extension MotionFrameRenderer {
         case .stack:
             return stacked(previous, under: frame, progress: progress, isLight: plan.isLight)
         case .expand:
-            return expanded(previous, into: frame, from: expandSource(into: index, at: time, plan: plan), progress: progress, isLight: plan.isLight)
+            return expanded(previous, into: frame, from: expandSource(into: index, at: time, plan: plan), progress: progress, isLight: plan.isLight,
+                            ground: ground(index, at: time, plan: plan))
         case .wipe:
             return wiped(previous, into: frame, progress: progress, size: bounds.size)
         case .dive:
@@ -61,8 +62,9 @@ nonisolated extension MotionFrameRenderer {
 
     /// The next scene `progress` of the way out of `source` (output pixels) to the whole frame, the scene before diving towards
     /// it: a container transform. The clicked control grows with the rectangle and fades as the rectangle turns from its colour
-    /// to the next scene's, which comes up in it; dark into dark, the rectangle alone read as a dim fade.
-    static func expanded(_ before: CIImage, into next: CIImage, from source: CGRect, progress: Double, isLight: Bool = false) -> CIImage {
+    /// to the next scene's `ground` (its frame's without one), which comes up in it; dark into dark, the rectangle alone read as a
+    /// dim fade.
+    static func expanded(_ before: CIImage, into next: CIImage, from source: CGRect, progress: Double, isLight: Bool = false, ground nextGround: CIImage? = nil) -> CIImage {
         let size = before.extent.size
         let mix = { (start: Double, end: Double) in start + (end - start) * progress }
         let rect = CGRect(x: mix(source.minX, 0), y: mix(source.minY, 0), width: mix(source.width, size.width), height: mix(source.height, size.height))
@@ -76,7 +78,7 @@ nonisolated extension MotionFrameRenderer {
             image.applyingFilter("CIAreaAverage", parameters: [kCIInputExtentKey: CIVector(cgRect: area)]).clampedToExtent().cropped(to: rect)
         }
         let inner = source.insetBy(dx: source.width * expandInset, dy: source.height * expandInset)
-        let ground = average(next, next.extent).fading(to: smoothstep(expandStages.colour.0, expandStages.colour.1, progress))
+        let ground = average(nextGround ?? next, next.extent).fading(to: smoothstep(expandStages.colour.0, expandStages.colour.1, progress))
             .composited(over: average(before, inner))
         // A control is a pill or a circle; a card keeps a card's corners. The control grows in its own shape, so a round
         // button's corners in its box don't come with it
@@ -126,23 +128,24 @@ nonisolated extension MotionFrameRenderer {
             .cropped(to: CGRect(origin: .zero, size: size))
     }
 
-    /// The camera `progress` of the way through `source` (output pixels) into the next scene: the scene before magnified about
-    /// it, log-even, until it covers the frame, tilting about it as it comes and squaring its corners off; the next scene seen
-    /// through it, coming up from further back and out of a blur; a glass rim round it until it's past.
+    /// The camera `progress` of the way through `source` (output pixels) into the next scene, with `before` already seen through
+    /// the seam's view (``seamView(into:at:plan:)``): magnified about the source, log-even, until it covers the frame, tilting
+    /// about it as it comes and squaring its corners off; the next scene seen through it, coming up from further back, sharp; a
+    /// glass rim round it until it's past.
     static func dived(_ before: CIImage, into next: CIImage, from source: CGRect, progress: Double, size: CGSize) -> CIImage {
         let frame = CGRect(origin: .zero, size: size)
         let unit = size.height / 1080
         let zoom = pow(diveReach(of: source, size: size), progress)
-        let centre = CGPoint(x: source.midX + (frame.midX - source.midX) * progress, y: source.midY + (frame.midY - source.midY) * progress)
-        let toward = about(CGPoint(x: source.midX, y: source.midY), scale: zoom, onto: centre)
-        let window = source.applying(toward)
+        let view = toward(CGPoint(x: source.midX, y: source.midY), reach: diveReach(of: source, size: size), progress: progress, size: size)
+        let centre = CGPoint(x: source.midX, y: source.midY).applying(view)
+        let window = source.applying(view)
         let squared = 1 - MotionEasing.enter.progress(min(max((progress - 0.6) / 0.4, 0), 1), duration: 1)
         let radius = min(source.width, source.height) / 2 * zoom * squared
         // The side the source is on comes nearer, as Vantae's pill's send did
         let angle = diveTilt * sin(.pi * progress) * (source.midX >= frame.midX ? 1 : -1)
         let tilt = { (image: CIImage) in tilted(image, about: centre, angle: angle, size: size) }
         let margin = frame.insetBy(dx: -size.width * 0.25, dy: -size.height * 0.25)
-        let plane = tilt(before.clampedToExtent().transformed(by: toward).cropped(to: margin))
+        let plane = tilt(before.clampedToExtent().cropped(to: margin))
         let corner = min(radius, min(window.width, window.height) / 2)
         let shape = { (color: CIColor, filter: String, extra: [String: Any]) in
             let parameters: [String: Any] = ["inputExtent": CIVector(cgRect: window), "inputRadius": corner, "inputColor": color]
@@ -150,11 +153,7 @@ nonisolated extension MotionFrameRenderer {
         }
         let mask = tilt(shape(.white, "CIRoundedRectangleGenerator", [:]))
         let depth = diveFrom + (1 - diveFrom) * progress
-        var seen = next.transformed(by: about(CGPoint(x: frame.midX, y: frame.midY), scale: depth, onto: CGPoint(x: window.midX, y: window.midY)))
-        let blur = diveBlur * unit * (1 - progress)
-        if blur >= 0.3 {
-            seen = seen.clampedToExtent().applyingGaussianBlur(sigma: blur)
-        }
+        let seen = next.transformed(by: about(CGPoint(x: frame.midX, y: frame.midY), scale: depth, onto: CGPoint(x: window.midX, y: window.midY)))
         var image = seen.cropped(to: frame).applyingFilter("CIBlendWithMask", parameters: [kCIInputBackgroundImageKey: plane, kCIInputMaskImageKey: mask])
         let rim = 1 - min(max((progress - 0.5) / 0.4, 0), 1)
         if rim > 0 {
@@ -207,9 +206,8 @@ nonisolated extension MotionFrameRenderer {
         return CGRect(x: minX * scale, y: (plan.canvas.height - maxY) * scale, width: (maxX - minX) * scale, height: (maxY - minY) * scale)
     }
 
-    /// How far a stack's, an expand's or a dive's moving edges travel while a shutter `shutter` long is open into scene
-    /// `index`, in output pixels, so they're motion blurred as a layer moving as fast would be: a dive's at half the frame's
-    /// height from its middle, magnified log-evenly.
+    /// How far a stack's, a flow's or a graphic seam's moving edges travel while a shutter `shutter` long is open into scene
+    /// `index`, in output pixels, so they're motion blurred as a layer moving as fast would be.
     static func seamTravel(into index: Int, at time: Double, across shutter: Double, plan: MotionPlan) -> Double {
         let size = plan.outputSize
         guard let transition = plan.scenes[index].transition, time < transition.duration else { return 0 }
@@ -221,17 +219,15 @@ nonisolated extension MotionFrameRenderer {
             // Their edges cross about this share of the frame's width over the seam, on curves up to 4 times as fast as even
             return abs(closes - opens) * reach * Double(size.width) * graphicPeak
         }
-        if transition.seam == .through, let pole = seamPole(into: index, at: time, plan: plan) {
-            let rim = min(throughRim * pole.radius, throughRimMost * size.height / 1080)
-            return abs(closes - opens) * log(throughReach(of: pole, rim: rim, size: size)) * size.height / 2
-        }
-        guard [.stack, .expand, .dive].contains(transition.seam) else { return 0 }
-        guard transition.seam == .dive else { return abs(closes - opens) * size.height }
-        return abs(closes - opens) * log(diveReach(of: expandSource(into: index, at: time, plan: plan), size: size)) * size.height / 2
+        // A zoom (an expand, a dive, a through) is drawn sharp: averaged across the shutter, Mastra 4's expand and through
+        // smeared the scene coming up into a blur
+        guard transition.seam == .stack else { return 0 }
+        return abs(closes - opens) * size.height
     }
 
     /// How far a graphic seam's fastest edge goes over the seam, in frame widths, for motion blur: the ones that blur themselves
-    /// (a spin, a stretch) or step (a glitch, pixels, a flash) and tiles that only open aren't blurred again.
+    /// (a spin, a stretch) or step (a glitch, pixels, a flash) and tiles that only open aren't blurred again; nor is a lens, whose
+    /// hairline stays sharp as the reference's did (blurred, it smeared into a grey ring 60 px wide).
     static let graphicTravel: [MotionSeam: Double] = [.iris: 1, .bars: 1.2, .slats: 1, .split: 0.5, .liquid: 1, .flip: 0.5, .cube: 1]
     static let graphicPeak = 4.0
 
@@ -305,11 +301,12 @@ nonisolated extension MotionFrameRenderer {
     static let expandMiddle = 0.3
 
     /// An expand's colour is read from its control's middle (a 15 % inset keeps a round button's dark corners out). The control
-    /// grows with the rectangle up to 2.5 times (further, its pixels blur) and is gone by 0.35 of the way; the rectangle turns
-    /// to the next scene's colour from 0.1 to 0.55, and the next scene comes up in it from 0.25 to 0.7.
+    /// grows with the rectangle up to 2.5 times (further, its pixels blur) and is gone by 0.25 of the way; the rectangle turns
+    /// to the next scene's ground from 0.05 to 0.3, and the next scene comes up in it from 0.15 to 0.5. Turning over 0.1–0.55,
+    /// Mastra 4's white send button grew into a grey slab for a fifth of a second.
     static let expandInset = 0.15
     static let expandGrowth = 2.5
-    static let expandStages = (control: (0.0, 0.35), colour: (0.1, 0.55), next: (0.25, 0.7))
+    static let expandStages = (control: (0.0, 0.25), colour: (0.05, 0.3), next: (0.15, 0.5))
 
     /// The lit edge of a stack's card and an expand's rectangle, at 1080p, fading as they cover the frame.
     static let seamRim = (width: 1.5, opacity: 0.3)
@@ -320,12 +317,11 @@ nonisolated extension MotionFrameRenderer {
     static let wipeFrom = 0.69
 
     /// A dive ends a tenth past covering the frame, turns up to 16° on the way, seen from 2.5 frame heights; the next scene
-    /// comes up from 0.6 of its size out of a 14 px blur (1080p), behind a 2.5 px rim at 0.7.
+    /// comes up from 0.6 of its size, behind a 2.5 px rim at 0.7 (1080p).
     static let diveOvershoot = 1.1
     static let diveTilt = 16.0
     static let diveDistance = 2.5
     static let diveFrom = 0.6
-    static let diveBlur = 14.0
     static let diveRim = (width: 2.5, opacity: 0.7)
 
     /// A melt goes in the order of its scene's light blurred 18 px (1080p), so it melts in patches, and two fifths by place from

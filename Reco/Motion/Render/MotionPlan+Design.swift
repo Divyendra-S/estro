@@ -67,11 +67,37 @@ nonisolated extension MotionPlan.Scene {
     }
 }
 
+extension MotionPlan {
+
+    /// A text's alpha where it's solid, or a lift's drawn in one colour (a mark); `nil` for anything else.
+    nonisolated static func solidAlpha(of content: LayerContent) -> Double? {
+        switch content {
+        case .text(let text): text.color.alpha
+        case .lifted(let lifted): lifted.tint?.alpha
+        default: nil
+        }
+    }
+}
+
 nonisolated extension MotionPlan.Layer {
+
+    /// The rectangle at `time`: as its morphs leave it, else as it is.
+    func fill(at time: Double) -> ShapeMorph.State? {
+        morph?.state(at: time) ?? fill
+    }
+
+    /// The content's size at `time`: a morphing shape's changes.
+    func size(at time: Double) -> CGSize {
+        morph?.state(at: time).size ?? size
+    }
 
     /// The room its letters spring through around it, in canvas pixels each side and whole image pixels: its revealed
     /// image is that much larger, drawn onto the quad around it.
     var revealRoom: CGSize {
+        // A decode's letters start spread about its anchor
+        if reveal?.style == .decode, rasterScale > 0 {
+            return CGSize(width: (size.width * TextReveal.decodeSpread * rasterScale).rounded(.up) / rasterScale, height: 0)
+        }
         guard reveal?.style == .letter || eat != nil, let line = parts.map(\.height).max(), rasterScale > 0 else { return .zero }
         let room = { (lines: Double) in (line * lines * rasterScale).rounded(.up) / rasterScale }
         // Eating bars start just outside the text's ends

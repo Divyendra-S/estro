@@ -93,17 +93,18 @@ nonisolated extension AgentToolCatalog {
         next scene seen inside its shape, until it fills the frame, 1 s: into the logo mark, through the letters of a big \
         line, an app icon, a chat bubble, a card), motif (the frame turns over in a grid of copies of that layer popping out \
         of where it is, each opening onto the next scene, 0.9 s: the mark, an avatar, a glyph, a calendar day). by also \
-        names what an expand, dive, iris, liquid or tiles opens out of, instead of the last click. Glow or dither on the first scene, \
+        names what an expand, dive, iris, lens, liquid or tiles opens out of, instead of the last click. Glow or dither on the first scene, \
         in its look: the ground swells in from black and the scene arrives in the seam by 1.4 s. Graphic seams, any look, in \
         style.accent and a second brand colour (the gradient's other end, else the accent lighter or darker), two of a kind \
         going different ways: iris (a disc of colour opens out of what was clicked, else the middle, the next scene's disc \
-        following, 0.7 s), bars (two slanted bars of colour then the next scene sweep across, 0.7 s), slats (the next scene's \
-        strips slide in from alternate sides, 0.6 s), tiles (a grid of dots of colour opening into squares of the next scene \
-        in a wave, 0.8 s), split (the frame parts down or across its middle, 0.6 s), spin (spun away blurred, the next spun \
-        in, 0.45 s), glitch (torn bands, colours apart, 0.4 s), pixelate (blocks growing then resolving, 0.5 s), liquid \
-        (wobbling blobs of colour from a corner or the click, the next inside, 0.9 s), flip (the frame turns over as a card, \
-        0.75 s), cube (turns away on a cube, 0.75 s), flash (a hit of colour on the cut, 0.35 s), stretch (stretched away and \
-        snapping back, 0.45 s).
+        following, 0.7 s), lens (a disc of glass opens out of what was clicked, else the middle, onto the next scene, frosted \
+        towards its edge with a hairline of light, 0.65 s: into what a thing holds), bars (two slanted bars of colour then \
+        the next scene sweep across, 0.7 s), slats (the next scene's strips slide in from alternate sides, 0.6 s), tiles (a \
+        grid of dots of colour opening into squares of the next scene in a wave, 0.8 s), split (the frame parts down or \
+        across its middle, 0.6 s), spin (spun away blurred, the next spun in, 0.45 s), glitch (torn bands, colours apart, \
+        0.4 s), pixelate (blocks growing then resolving, 0.5 s), liquid (wobbling blobs of colour from a corner or the click, \
+        the next inside, 0.9 s), flip (the frame turns over as a card, 0.75 s), cube (turns away on a cube, 0.75 s), flash \
+        (a hit of colour on the cut, 0.35 s), stretch (stretched away and snapping back, 0.45 s).
         Moves {move, start, duration, intensity, direction, words, region, to}: text fadeUp, blurIn, blurWipe (letters sharpen \
         left to right), lineMask (lines rise out of a mask), wordByWord (words fade up one after another), type, roll (words: \
         the last word replaced in turn), exit; any layer rise, tilt, focus (region), detach, stateChange; a group cascade; \
@@ -124,6 +125,14 @@ nonisolated extension AgentToolCatalog {
         {color, stroke for soft bands inside a rectangle}; \
         letters and kinetic (text: springing in; typed behind an accent caret); scroll {to} (with cascade, rows build as \
         they come into view).
+        UI changing state, the thing itself, never a swap: retext {words: [what it becomes], start} (text: its letters leave out \
+        of order as the new text's arrive over them at the same anchor, spaced out and closing up, 0.57 s: a button's label, a \
+        status "Running…" to "Success", a model's name; another retext later turns it again; its reveal and other moves stay); \
+        decode (text: arriving letter by letter out of order, spaced out and closing up, 0.45 s); dissolve (text: leaving so, \
+        0.25 s); wheel {intensity rows, direction up|down} (a group of rows stacked down, the one at the group's place in \
+        front: the rows sit on a drum, smaller, dimmer and leaning away round it, and turn that many rows on to the next \
+        choice, blurred as they pass, 0.4–0.9 s; its rows take no moves of their own). A pill turning into a bar and the bar into \
+        a toolbar is a morph and pops.
         Story films (the reco-story-film skill has recipes): glyph kinds chevron, mic, terminal, branch too; voice (text: \
         what someone says, typed big at 13 characters a second, the newest words in style.gradient behind a thin caret, \
         centred as it grows and then following its caret at 70 % of the width, with its group if it has one); reply (text: \
@@ -180,7 +189,7 @@ nonisolated extension AgentToolCatalog {
         "canvas":{"type":"object"},"style":{"type":"object"},"sound":{"type":"object"},"asset":{"type":"object"},"scene":{"type":"object"},"layer":{"type":"object"},
         "duration":{"type":"number"},
         "seam":{"type":"string","enum":["cut","whip","swing","flow","cutOnMotion","zoomThrough","blurCut","push","fade","stack","expand","wipe","dive",
-        "melt","glow","dither","ring","through","motif","iris","bars","slats","tiles","split","spin","glitch","pixelate","liquid","flip","cube","flash","stretch"]},
+        "melt","glow","dither","ring","through","motif","iris","lens","bars","slats","tiles","split","spin","glitch","pixelate","liquid","flip","cube","flash","stretch"]},
         "by":{"type":"string","description":"set_scene: the layer of the scene before its seam is made of (through, motif) or opens out of"},
         "shot":{"type":"object","description":"{shot: macro|hook|title|uiHero|uiFocus|uiCascade|featureSequence|endCard|closing, text, detail, ui, items, region, view}"},
         "field":{"type":"string","enum":["satin","pool","plain","ember","sunlit","bloom","orb","ripple","matrix","warp","swirl","tide","halo","aurora","haze",

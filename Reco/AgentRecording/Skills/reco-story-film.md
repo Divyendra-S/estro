@@ -108,7 +108,7 @@ shader looks and what each needs. Keep the whole film in one (one look a film):
 | Dots, a grid, halftone or pixels in the site's own pictures | dither | `warp` (liquid streaks), `tide` (a wave from below), `swirl` | 0.45 | `dither` |
 | A clear hue (AI, design, consumer) | light | `ember` (two corners), `sunlit` (a wave), `bloom` (a blob) | 0.45 | `glow` |
 | Its colour is a gradient of several hues (Lovable, Stripe) | aurora | `aurora` | 0.8 | cuts only |
-| Dark and quiet, its colour all in its UI | satin | `satin` | 1 | cuts only |
+| A dark site that paints nothing behind its UI | plain | `plain` on `brand.background`, its panels lit | — | the product's things |
 
 - The dither and light looks take their colour from `style.accent`: the brand's colour, or white for a black and white
   brand (its dots or light in greys).
@@ -127,7 +127,7 @@ The look's own seam (`dither` or `glow`) marks the three turns, never more:
 - **Into the logo:** `"seam": "ring"` with `"field": "halo"` on the logo's scene (dither and light looks): a ring of
   smoke opens from the middle and leaves the logo in a halo in the brand's colour.
 
-The aurora and satin have no seam of their own: their turns take `stack` or `expand`. The aurora's light goes out over the
+The aurora, pool and plain have no seam of their own: their turns take `stack` or `expand`. The aurora's light goes out over the
 last 2 s.
 
 ### The gradient

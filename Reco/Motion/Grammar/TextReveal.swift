@@ -32,6 +32,15 @@ nonisolated struct TextReveal: Equatable, Sendable {
         case sweep
         /// Shown dim, its words lit at once one after another (spec 0017): ElevenLabs' statements.
         case brighten
+        /// Characters sharpening in out of order, spaced out and closing up (spec 0025): a label turning into the next.
+        case decode
+        /// Characters fading out out of order, shown whole until then (spec 0025).
+        case dissolve
+    }
+
+    /// Whether its parts come out of order (``scrambled(_:stagger:)``): a decode's and a dissolve's.
+    var isScrambled: Bool {
+        style == .decode || style == .dissolve
     }
 
     /// Whether its newest parts are drawn in the brand's gradient, turning to the text's colour over ``tintLength``.
@@ -107,6 +116,39 @@ nonisolated struct TextReveal: Equatable, Sendable {
 
     /// When the last of `parts` is shown in full.
     func end(parts: Int) -> Double {
-        start(ofPart: max(parts - 1, 0)) + partDuration
+        guard let offsets, parts > 0 else { return start(ofPart: max(parts - 1, 0)) + partDuration }
+        return start + (offsets.prefix(parts).max() ?? 0) + partDuration
     }
+
+    // MARK: Decode and dissolve (spec 0025)
+
+    /// Measured on a pill turning "Eleven Creative" into "Create Agent" (30 fps): the new letters came over 0.4–0.5 s, roughly
+    /// left to right with gaps a few letters wide, each in about 0.1 s, spread to about 1.35× the word's width and closing up
+    /// over the next 0.2 s; the old went in 0.23 s.
+    static let scrambleReach = 2.5
+    static let decodeSpread = 0.35
+    static let decodePart = 0.12
+    static let dissolvePart = 0.08
+
+    /// When each of `count` parts starts, `stagger` apart in order but each up to ``scrambleReach`` parts late, the same for
+    /// the same count every time (FNV-1a of its index).
+    static func scrambled(_ count: Int, stagger: Double) -> [Double] {
+        (0..<count).map { index in
+            var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+            for byte in withUnsafeBytes(of: UInt64(index).littleEndian, { Array($0) }) {
+                hash = (hash ^ UInt64(byte)) &* 0x100_0000_01b3
+            }
+            return (Double(index) + scrambleReach * Double(hash % 1000) / 1000) * stagger
+        }
+    }
+
+    /// How far a decode's letters are spread at `time`: a share of their distance from the layer's anchor, closing over the
+    /// reveal and ``decodeSettle`` after it, eased out.
+    func spread(at time: Double, parts: Int) -> Double {
+        let length = end(parts: parts) - start + Self.decodeSettle
+        let fraction = min(max((time - start) / max(length, 1e-3), 0), 1)
+        return Self.decodeSpread * (1 - MotionEasing.enter.progress(fraction, duration: 1))
+    }
+
+    static let decodeSettle = 0.2
 }

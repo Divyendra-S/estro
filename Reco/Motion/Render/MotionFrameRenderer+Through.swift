@@ -51,30 +51,54 @@ nonisolated extension MotionFrameRenderer {
         return (CGPoint(x: point.x * scale, y: (plan.canvas.height - point.y) * scale), pole.radius * shown * scale)
     }
 
-    /// The camera `progress` of the way into `matte` (the layer the seam is made of, drawn alone) at `pole`: the scene before
-    /// magnified about it, log-even, the pole coming to the frame's middle, until the shape covers the frame; the next scene seen
-    /// inside the shape, its own colour left round it as a rim, coming up from further back and out of a blur.
+    /// How a through or a dive into scene `index` sees the scene before `time` into it, in output pixels: magnified about its
+    /// pole or source, log-even, that point coming to the frame's middle; `nil` for other seams and after it. The scene before is
+    /// drawn through it from its layers' own images: its frame magnified (up to 60 times, into a letter's stroke) was a blur.
+    static func seamView(into index: Int, at time: Double, plan: MotionPlan) -> CGAffineTransform? {
+        guard let transition = plan.scenes[index].transition, time < transition.duration else { return nil }
+        let size = plan.outputSize
+        let progress = transition.progress(at: time)
+        switch transition.seam {
+        case .through:
+            guard let pole = seamPole(into: index, at: time, plan: plan) else { return nil }
+            return toward(pole.point, reach: throughReach(of: pole, rim: throughRimWidth(of: pole, size: size), size: size), progress: progress, size: size)
+        case .dive:
+            let source = expandSource(into: index, at: time, plan: plan)
+            return toward(CGPoint(x: source.midX, y: source.midY), reach: diveReach(of: source, size: size), progress: progress, size: size)
+        default:
+            return nil
+        }
+    }
+
+    /// Magnified about `point` `reach` times, log-even, `progress` of the way, the point coming to the frame's middle.
+    static func toward(_ point: CGPoint, reach: Double, progress: Double, size: CGSize) -> CGAffineTransform {
+        let centre = CGPoint(x: point.x + (size.width / 2 - point.x) * progress, y: point.y + (size.height / 2 - point.y) * progress)
+        return scaling(about: point, by: pow(reach, progress), onto: centre)
+    }
+
+    /// The camera `progress` of the way into `matte` (the layer the seam is made of, drawn alone) at `pole`, with `scenes.before`
+    /// already seen through the seam's view (``seamView(into:at:plan:)``): the next scene seen inside the shape, its own colour
+    /// left round it as a rim, coming up from further back. The shape's edge is cut sharp as it's magnified.
     static func throughed(_ scenes: (before: CIImage, next: CIImage), matte: CIImage, pole: (point: CGPoint, radius: Double), progress: Double, size: CGSize) -> CIImage {
         let frame = CGRect(origin: .zero, size: size)
         let middle = CGPoint(x: frame.midX, y: frame.midY)
-        let unit = size.height / 1080
-        let rim = min(throughRim * pole.radius, throughRimMost * unit)
-        let zoom = pow(throughReach(of: pole, rim: rim, size: size), progress)
-        let centre = CGPoint(x: pole.point.x + (middle.x - pole.point.x) * progress, y: pole.point.y + (middle.y - pole.point.y) * progress)
-        let toward = scaling(about: pole.point, by: zoom, onto: centre)
+        let rim = throughRimWidth(of: pole, size: size)
+        let reach = throughReach(of: pole, rim: rim, size: size)
+        let view = toward(pole.point, reach: reach, progress: progress, size: size)
         let margin = frame.insetBy(dx: -size.width * 0.25, dy: -size.height * 0.25)
-        let plane = scenes.before.clampedToExtent().transformed(by: toward).cropped(to: margin)
         // The shape less its rim, as a mask, fading in so the shape is itself at the cut
         let eroded = rim >= 0.5 ? matte.applyingFilter("CIMorphologyMinimum", parameters: [kCIInputRadiusKey: rim]) : matte
-        let window = eroded.transformed(by: toward).cropped(to: margin).fading(to: min(progress / throughShow, 1))
+        let window = crisped(eroded.transformed(by: view).cropped(to: margin), solid: 1, sharpness: pow(reach, progress))
+            .fading(to: min(progress / throughShow, 1))
         let depth = throughFrom + (1 - throughFrom) * progress
-        var seen = scenes.next.transformed(by: scaling(about: middle, by: depth, onto: centre))
-        let blur = throughBlur * unit * (1 - progress)
-        if blur >= 0.3 {
-            seen = seen.clampedToExtent().applyingGaussianBlur(sigma: blur)
-        }
-        return seen.cropped(to: frame).applyingFilter("CIBlendWithAlphaMask", parameters: [kCIInputBackgroundImageKey: plane, kCIInputMaskImageKey: window])
+        let seen = scenes.next.transformed(by: scaling(about: middle, by: depth, onto: pole.point.applying(view)))
+        return seen.cropped(to: frame).applyingFilter("CIBlendWithAlphaMask", parameters: [kCIInputBackgroundImageKey: scenes.before, kCIInputMaskImageKey: window])
             .cropped(to: frame)
+    }
+
+    /// The rim a through leaves round what's seen through its shape at `pole`, in output pixels before it's magnified.
+    static func throughRimWidth(of pole: (point: CGPoint, radius: Double), size: CGSize) -> Double {
+        min(throughRim * pole.radius, throughRimMost * size.height / 1080)
     }
 
     /// The seam made of a layer into scene `index`, `progress` of the way and `time` into it, if it's one and the layer is
@@ -84,7 +108,7 @@ nonisolated extension MotionFrameRenderer {
         let size = plan.outputSize
         switch transition.seam {
         case .through:
-            guard let matte = seamLayerImage(into: index, at: time, plan: plan), let pole = seamPole(into: index, at: time, plan: plan) else { return nil }
+            guard let pole = seamPole(into: index, at: time, plan: plan), let matte = seamLayerImage(into: index, at: time, plan: plan) else { return nil }
             return throughed(scenes, matte: matte, pole: pole, progress: progress, size: size)
         case .motif:
             // The shape as it was at the cut, so the grid's cells don't change as the scene before goes on
@@ -102,18 +126,17 @@ nonisolated extension MotionFrameRenderer {
     }
 
     /// Scaling by `scale` about `point`, then moving `point` onto `onto`.
-    private static func scaling(about point: CGPoint, by scale: Double, onto: CGPoint) -> CGAffineTransform {
+    static func scaling(about point: CGPoint, by scale: Double, onto: CGPoint) -> CGAffineTransform {
         CGAffineTransform(translationX: -point.x, y: -point.y).concatenating(CGAffineTransform(scaleX: scale, y: scale))
             .concatenating(CGAffineTransform(translationX: onto.x, y: onto.y))
     }
 
     /// The shape keeps a quarter of its thickness in its own colour round what's seen through it, at most 12 px at 1080p; the
-    /// next scene shows in it over the first 0.15 of the way, from 0.7 of its size out of a 12 px blur; the flight ends a tenth
-    /// past covering the frame.
+    /// next scene shows in it over the first 0.15 of the way, from 0.7 of its size, sharp; the flight ends a tenth past covering
+    /// the frame.
     static let throughRim = 0.25
     static let throughRimMost = 12.0
     static let throughShow = 0.15
     static let throughFrom = 0.7
-    static let throughBlur = 12.0
     static let throughOvershoot = 1.1
 }

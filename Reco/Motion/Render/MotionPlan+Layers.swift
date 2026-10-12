@@ -40,7 +40,7 @@ extension MotionPlan {
             for move in layer.moves {
                 let effect = MoveExpansion.effect(of: move, in: context)
                 planned.moves.merge(effect.tracks) { $0 + $1 }
-                planned.reveal = effect.reveal ?? planned.reveal
+                if effect.reveal?.style == .dissolve { planned.exit = effect.reveal } else { planned.reveal = effect.reveal ?? planned.reveal }
                 planned.region = effect.region.map { CGRect(x: $0.minX * size.width, y: $0.minY * size.height, width: $0.width * size.width, height: $0.height * size.height) }
                     ?? planned.region
             }

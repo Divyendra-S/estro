@@ -158,12 +158,12 @@ nonisolated enum MoveExpansion {
         case .exit:
             effect.tracks = exitTracks(of: move, start: start, duration: duration, in: context)
         case .roll, .cascade, .hold, .push, .pullBack, .drift, .pan, .whip, .arc, .burst, .ripple, .morph, .flood, .scroll, .shimmer, .wash, .show, .hide,
-             .scatter, .select, .fly, .sweep, .brighten, .blink, .grow, .marks, .orbit, .dots, .unfold, .eat:
-            // A roll, a cascade, a burst and a ripple become other layers' moves (``DocumentExpansion``); a morph, a
+             .scatter, .select, .fly, .sweep, .brighten, .blink, .grow, .marks, .orbit, .dots, .unfold, .eat, .retext, .wheel:
+            // A roll, a cascade, a retext, a wheel, a burst and a ripple become other layers' moves (``DocumentExpansion``); a morph, a
             // flood and a scroll a shape's states and the layer's place, with the others before and after (``ShapeMorph``);
             // a story's and an editorial film's moves are expanded above; a selection is drawn behind the text (``TextSelection``)
             break
-        case .blurWipe, .lineMask, .wordByWord, .type, .letters, .kinetic, .voice, .reply:
+        case .blurWipe, .lineMask, .wordByWord, .type, .letters, .kinetic, .voice, .reply, .decode, .dissolve:
             effect.reveal = reveal(move, start: start, duration: duration, in: context)
         case .pop:
             effect.tracks[.opacity] = [ramp(.opacity, (0, 1), start: start, duration: min(0.1, duration), easing: .enterFast)]
@@ -355,6 +355,7 @@ nonisolated enum MoveExpansion {
         case .kinetic, .voice: return Double(context.characters) / kineticRate
         case .reply: return replyStagger * Double(max(context.words - 1, 0)) + replyFade
         case .sweep, .brighten, .blink, .grow, .marks, .orbit, .dots, .unfold, .eat: return editorialDuration(of: move.kind, rest: rest, in: context)
+        case .decode, .dissolve, .retext, .wheel: return stateDuration(of: move)
         case .wash: return washDuration
         case .shimmer: return rest
         case .show, .hide: return 1e-3
@@ -401,6 +402,7 @@ nonisolated enum MoveExpansion {
         case .lineMask:
             let part = min(0.6, duration)
             return TextReveal(style: .rise, start: start, stagger: (duration - part) / Double(max(context.lines - 1, 1)), partDuration: part)
+        case .decode, .dissolve: return scrambledReveal(of: move, start: start, duration: duration, in: context)
         case .wordByWord:
             let part = min(0.45, duration)
             return TextReveal(style: .word, start: start, stagger: (duration - part) / Double(max(context.words - 1, 1)), partDuration: part)

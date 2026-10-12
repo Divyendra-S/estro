@@ -108,6 +108,12 @@ nonisolated enum DocumentExpansion {
             layer.moves.removeAll { $0.kind == .cascade }
             layer.content = .group(cascaded(rows, by: cascade, in: layer, expansion: expansion))
         }
+        if let wheel = layer.moves.first(where: { $0.kind == .wheel }), case .group(let rows) = layer.content {
+            layer.content = .group(wheeled(rows, by: wheel, in: expansion.context))
+        }
+        if layer.moves.contains(where: { $0.kind == .retext }), case .text(let text) = layer.content {
+            return retexted(layer, text: text, in: expansion.context)
+        }
         if let roll = layer.moves.first(where: { $0.kind == .roll }), case .text(let text) = layer.content {
             layer.moves.removeAll { $0.kind == .roll }
             return rolled(layer, text: text, roll: roll, in: expansion.context)

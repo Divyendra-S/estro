@@ -12,7 +12,7 @@ nonisolated enum MotionLint {
 
     nonisolated enum Rule: String, Sendable {
         case readingTime, textSize, safeArea, contrast, firstMove, simultaneousMoves, exitLength
-        case sceneLengths, typingRate, stillness, hookLength, endingLength, rollLength, busyField, material, look, beats, carried
+        case sceneLengths, typingRate, stillness, hookLength, endingLength, rollLength, busyField, material, look, beats, carried, swaps, ornament
     }
 
     nonisolated struct Finding: Equatable, Sendable {
@@ -43,7 +43,8 @@ nonisolated enum MotionLint {
     /// Reveals read along as they're typed.
     private static let typedReveals: Set<MotionMove.Kind> = [.type, .kinetic, .voice]
 
-    private static let actions: Set<MotionMove.Kind> = [.exit, .eat, .click, .press, .spin, .morph, .flood, .scroll, .burst, .ripple, .shimmer, .wash, .hide]
+    private static let actions = Set<MotionMove.Kind>([.exit, .eat, .click, .press, .spin, .morph, .flood, .scroll, .burst, .ripple, .shimmer, .wash, .hide])
+        .union([.retext, .dissolve, .wheel])
 
     static func findings(in document: MotionDocument, sizes: [String: CGSize] = [:]) -> [Finding] {
         let document = document.brandSet
@@ -78,7 +79,7 @@ nonisolated enum MotionLint {
                     findings.append(Finding(rule: .endingLength, scene: scene.id, message: message))
                 }
             }
-            findings += rollFindings(scene.layers, scene: scene) + carriedFindings(layers, scene: scene)
+            findings += rollFindings(scene.layers, scene: scene) + carriedFindings(layers, scene: scene) + swapFindings(in: scene)
             let field = source.field ?? document.canvas.field
             if let shot = source.shot, shot.kind == .macro, field != .plain {
                 findings += materialFindings(shot, over: field, scene: scene.id, assets: document.assets)
@@ -91,7 +92,7 @@ nonisolated enum MotionLint {
                 ))
             }
         }
-        findings += lookFindings(document)
+        findings += lookFindings(document) + ornamentFindings(document)
         let lengths = document.scenes.map(\.duration)
         if lengths.count >= 4, let longest = lengths.max(), let shortest = lengths.min(), longest < 3 * shortest {
             findings.append(Finding(

@@ -2,7 +2,7 @@
 //  TransitionKernels.metal.txt
 //  Reco
 //
-//  Graphic transitions any look may use (spec 0019), drawn in the brand's colours: an iris, bars, slats, tiles, a glitch,
+//  Graphic transitions any look may use (spec 0019), drawn in the brand's colours: an iris, a lens (spec 0025), bars, slats, tiles, a glitch,
 //  pixels, liquid and a spin's blur. The ones that move whole frames in space (split, flip, cube, flash, stretch) are drawn
 //  with Core Image's own filters (`TransitionRenderer+Space`).
 //
@@ -51,6 +51,31 @@ inline float4 dimmed(float4 color, float by) { return float4(color.rgb * (1.0 - 
     float d = length(p - o);
     float4 shown = mix(seam::at(before, o + (p - o) / zoom.x), float4(color.rgb, 1.0), seam::disc(d, iris.z));
     return mix(shown, seam::at(next, o + (p - o) / zoom.y), seam::disc(d, iris.w));
+}
+#endif
+
+#ifdef lensSeam_ONLY
+/// A lens (``MotionSeam/lens``): a disc of glass opens out of the origin, the next scene inside it, bent and frosted towards its
+/// edge, a hairline of light round it and a breath of light outside; the scene before around it. `frame`'s w: how strong the
+/// frost and the light are. `lens`: the origin, its radius, its frosted band (pixels). `zoom`: the scene before's
+/// magnification, the next's.
+[[stitchable]] float4 lensSeam(
+    coreimage::sampler before, coreimage::sampler next, float4 frame, float4 lens, float2 zoom, coreimage::destination dest
+) {
+    float2 p = dest.coord();
+    float2 o = lens.xy;
+    float2 v = p - o;
+    float d = length(v);
+    float r = lens.z;
+    // Towards its edge the glass shows the next scene from further in, frosted: a point s of the band's way out; both clear
+    // with the frost, so the seam ends on the next scene
+    float s = saturate((d - (r - lens.w)) / max(lens.w, 1.0)) * sqrt(frame.w);
+    float4 inside = seam::at(next, o + v * (1.0 - 0.18 * s * s) / zoom.y);
+    inside.rgb = mix(inside.rgb, float3(1.0), 0.3 * s * s);
+    float4 shown = mix(seam::at(before, o + v / zoom.x), inside, seam::disc(d, r));
+    float out = max(d - r, 0.0) / (24.0 * frame.z);
+    float light = exp(-pow((d - r) / (1.3 * frame.z), 2.0)) * 0.9 + 0.12 * exp(-out * out) * step(r, d);
+    return float4(mix(shown.rgb, float3(1.0), saturate(light * saturate(r / frame.z) * frame.w)), 1.0);
 }
 #endif
 

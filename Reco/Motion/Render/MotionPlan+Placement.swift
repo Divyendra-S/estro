@@ -34,5 +34,23 @@ extension MotionPlan {
         /// The camera's blur at each corner in canvas pixels, signed: negative in front of what's
         /// in focus. Empty without depth of field.
         var defocus: [Double] = []
+
+        /// Where it lands seen through `view`, a move of the whole frame in output pixels (a seam's camera flying in, spec 0026):
+        /// its quads moved and its scale, blur and defocus grown with them, so it's drawn from its own image, not magnified as a
+        /// frame drawn already (which blurred every zoom through a scene).
+        func viewed(through view: CGAffineTransform, canvas: CGSize, outputScale: Double) -> Placement {
+            // Canvas pixels from the top-left to output pixels from the bottom-left, through the view, and back
+            let move = { (point: CGPoint) -> CGPoint in
+                let seen = CGPoint(x: point.x * outputScale, y: (canvas.height - point.y) * outputScale).applying(view)
+                return CGPoint(x: seen.x / outputScale, y: canvas.height - seen.y / outputScale)
+            }
+            let zoom = sqrt(abs(view.a * view.d - view.b * view.c))
+            var placement = Placement(
+                layer: layer, corners: corners.map(move), depth: depth, opacity: opacity, blur: blur * zoom, scale: scale * zoom,
+                shadowCorners: shadowCorners?.map(move), roomCorners: roomCorners?.map(move)
+            )
+            placement.defocus = defocus.map { $0 * zoom }
+            return placement
+        }
     }
 }

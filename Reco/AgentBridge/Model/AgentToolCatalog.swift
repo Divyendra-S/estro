@@ -43,7 +43,10 @@ nonisolated enum AgentToolCatalog {
                 brand: background, text and accent colors, serif or sans, the logo, the heading's weight, tracking, case and size, \
                 the palette (painted colours, most area first), gradients, corner radii (button, card) and fonts (the heading's \
                 and body's font files, for a motion video's style.fonts) and motion (the curves its transitions use, most used \
-                first, their middle duration in ms, whether any overshoots, how many animations run); and what a motion video can lift alone \
+                first, their middle duration in ms, whether any overshoots, how many animations run), colors (every colour that \
+                isn't a grey, however small, most used first: how it's used, text, fill, line, gradient or inside an SVG picture, \
+                and the words nearest what's painted in it) and surface (how its panels are drawn: fill, border, radius); and a \
+                picture of the page from top to foot, screen by screen, to see the site as a visitor does; and what a motion video can lift alone \
                 (liftable: cards, panels, app mockups and pictures with their boxes and corner radius, largest first); and every \
                 picture on the page by its address, also those in tabs and slides not shown (pictures: url, img or video, alt, its \
                 own size, a video's poster, whether shown): the product's own screenshots and previews, lifted by url. Reco scrolls \

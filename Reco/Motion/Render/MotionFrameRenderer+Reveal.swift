@@ -13,10 +13,7 @@ nonisolated extension MotionFrameRenderer {
     /// its style. Its image is drawn at its raster scale, rounded up to whole pixels.
     static func revealed(_ image: CIImage, of layer: MotionPlan.Layer, by reveal: TextReveal, at time: Double) -> CIImage {
         let pixels = { (rect: CGRect) in revealPixels(of: rect, in: layer) }
-        // The layer's whole extent and the room its letters move in, clear where nothing shows yet: the projection maps the
-        // extent to the quad around it
-        let room = layer.revealRoom
-        let extent = image.extent.insetBy(dx: -room.width * layer.rasterScale, dy: -room.height * layer.rasterScale)
+        let extent = revealExtent(of: image, layer: layer)
         var shown = CIImage(color: .clear).cropped(to: extent)
         // A brightened line is there dim from its cut, its words lit over it
         if reveal.style == .brighten {
@@ -55,6 +52,43 @@ nonisolated extension MotionFrameRenderer {
         return shown.cropped(to: extent)
     }
 
+    /// The layer's whole extent and the room its letters move in: the projection maps the extent to the quad around it.
+    private static func revealExtent(of image: CIImage, layer: MotionPlan.Layer) -> CGRect {
+        let room = layer.revealRoom
+        return image.extent.insetBy(dx: -room.width * layer.rasterScale, dy: -room.height * layer.rasterScale)
+    }
+
+    /// A decode's or a dissolve's characters, each on its own time (``TextReveal/scrambled(_:stagger:)``): sharpening in from 8 %
+    /// of its line and fading up, or the other way out; a decode's spread about the layer's anchor and closing up.
+    static func scrambled(_ image: CIImage, of layer: MotionPlan.Layer, by reveal: TextReveal, at time: Double) -> CIImage {
+        let decode = reveal.style == .decode
+        let end = reveal.end(parts: layer.parts.count)
+        let extent = revealExtent(of: image, layer: layer)
+        let clear = CIImage(color: .clear).cropped(to: extent)
+        // Whole before a dissolve and once a decode has closed up: no character drawn alone
+        if decode ? time >= end + TextReveal.decodeSettle : time <= reveal.start {
+            return image.composited(over: clear)
+        }
+        let scale = layer.rasterScale
+        let spread = decode ? reveal.spread(at: time, parts: layer.parts.count) : 0
+        let anchor = layer.anchor.x * layer.size.width
+        var shown = clear
+        for (index, part) in layer.parts.enumerated() {
+            let eased = reveal.progress(ofPart: index, at: time)
+            let visible = decode ? eased : 1 - eased
+            guard visible > 1e-3 else { continue }
+            var piece = image.cropped(to: revealPixels(of: part, in: layer))
+            if case let sigma = (1 - visible) * part.height * 0.08 * scale, sigma >= 0.3 {
+                piece = piece.applyingGaussianBlur(sigma: sigma)
+            }
+            if spread > 0 {
+                piece = piece.transformed(by: CGAffineTransform(translationX: ((part.midX - anchor) * spread * scale).rounded(), y: 0))
+            }
+            shown = piece.fading(to: visible).composited(over: shown)
+        }
+        return shown.cropped(to: extent)
+    }
+
     /// The room letters spring through around their text, in lines across and down: from 0.7 of a line below to a
     /// quarter above at 1.35× (``TextReveal/letterPose(_:)``), each piece 0.15 of a line taller than its line.
     static let letterRoom = CGSize(width: 0.5, height: 1)
@@ -74,7 +108,8 @@ nonisolated extension MotionFrameRenderer {
     ) -> CIImage? {
         let (eased, line, scale) = (progress.eased, part.height, layer.rasterScale)
         switch style {
-        case .type, .kinetic, .voice, .brighten:
+        // A decode's and a dissolve's are drawn by ``scrambled(_:of:by:at:)``
+        case .type, .kinetic, .voice, .brighten, .decode, .dissolve:
             return nil
         case .reply:
             return piece.fading(to: eased)

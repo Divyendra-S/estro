@@ -44,6 +44,9 @@ nonisolated struct MotionMove: Equatable, Sendable {
         case scatter
         // Groups: their layers one after another
         case cascade
+        // UI states (spec 0025), text: arriving letter by letter out of order, spaced out and closing up; leaving so; turning
+        // into its `words` (the old text leaving as the new arrives). A group: its rows on a drum, turned `intensity` rows
+        case decode, dissolve, retext, wheel
         // Cameras; an arc travels round where the camera looks, turning the scene at a steady pace (spec 0020)
         case hold, push, pan, pullBack, drift, whip, arc
 
@@ -58,7 +61,8 @@ nonisolated struct MotionMove: Equatable, Sendable {
         static let editorialKinds: Set<Kind> = [.sweep, .brighten, .blink, .grow, .marks, .orbit, .dots, .unfold, .eat]
 
         var needsText: Bool {
-            [.blurWipe, .lineMask, .wordByWord, .type, .roll, .letters, .kinetic, .voice, .reply, .select, .sweep, .brighten, .eat].contains(self)
+            [.blurWipe, .lineMask, .wordByWord, .type, .roll, .letters, .kinetic, .voice, .reply, .select, .sweep, .brighten, .eat, .decode, .dissolve, .retext]
+                .contains(self)
         }
     }
 
@@ -78,10 +82,10 @@ nonisolated struct MotionMove: Equatable, Sendable {
     /// whip, how much closer than where it starts.
     var intensity: Double?
 
-    /// Where a drift, a slide in, a fly or an exit goes.
+    /// Where a drift, a slide in, a fly or an exit goes; which way a wheel turns (up by default: the rows below come to the front).
     var direction: Direction?
 
-    /// A roll's words, in turn after the text's last word.
+    /// A roll's words, in turn after the text's last word; what a retext turns its text into.
     var words: [String]?
 
     /// What a focus frames, in fractions of the layer from its top-left corner.
@@ -128,7 +132,9 @@ nonisolated extension MotionMove {
         case let kind where kind.needsText && !isText: return "\(kind.rawValue) needs a text layer."
         case .cascade where !isGroup: return "cascade needs a group: its layers enter one after another."
         case .scatter where !isGroup && target == nil: return "scatter needs a group: its layers fly out from its middle."
-        case .unfold where !isGroup: return "unfold needs a group: its mark first, then its name and a tagline."
+        case .unfold where !isGroup, .wheel where !isGroup:
+            return kind == .unfold ? "unfold needs a group: its mark first, then its name and a tagline."
+                : "wheel needs a group: its rows on a drum, the one at the group's place in front."
         case .morph, .flood, .grow: return shapeProblem(on: content)
         default: return missingField
         }
@@ -138,6 +144,7 @@ nonisolated extension MotionMove {
     private var missingField: String? {
         switch kind {
         case .roll where words?.isEmpty ?? true: "roll needs words."
+        case .retext where words?.first?.isEmpty ?? true: "retext needs words: [the text it turns into]."
         case .pan where target == nil, .whip where target == nil: "\(kind.rawValue) needs to: the point to look at."
         case .focus where !(region.map { CGRect(x: 0, y: 0, width: 1, height: 1).contains($0) && !$0.isEmpty } ?? false):
             "focus needs a region inside the layer, in fractions of its size."

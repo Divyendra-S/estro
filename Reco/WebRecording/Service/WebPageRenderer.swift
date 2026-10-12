@@ -370,7 +370,7 @@ final class WebPageRenderer: NSObject {
 
     /// The page, or its box `rect`, drawn at the take's scale. WebKit paints it for the requested
     /// width, so a 2× take is sharp on any display.
-    private func snapshot(of rect: CGRect? = nil, scale: Int? = nil) async throws -> CGImage {
+    func snapshot(of rect: CGRect? = nil, scale: Int? = nil) async throws -> CGImage {
         let configuration = WKSnapshotConfiguration()
         if let rect {
             configuration.rect = rect
@@ -381,40 +381,6 @@ final class WebPageRenderer: NSObject {
             throw WebRenderError.snapshotFailed
         }
         return cgImage
-    }
-}
-
-// MARK: - Inspecting
-
-extension WebPageRenderer {
-
-    /// Loads the script's page and lists what it shows at scroll 0: see ``WebInspectScript``.
-    /// `selectors` are the ones to also return the box of.
-    func inspect(selectors: [String]) async throws -> PageInspection {
-        // Settled in real time, as in a take: the page's own scripts finish drawing before it's read
-        try await withLoadedPage { webView in
-            let result = try await webView.callAsyncJavaScript(
-                WebInspectScript.source, arguments: ["selectors": selectors], contentWorld: .defaultClient
-            )
-            guard let json = result as? String else { throw WebRenderError.loadFailed("The page couldn't be read.") }
-            var inspection = try JSONDecoder().decode(PageInspection.self, from: Data(json.utf8))
-            inspection.renderCost = try await renderCost()
-            return inspection
-        }
-    }
-
-    /// Seconds of rendering per second of video at scale 1 and 2, from one snapshot of the page at
-    /// each: the snapshot is the cost of a frame, 14 ms on a simple page and 310 ms on linear.app at
-    /// 2× (M5), the rest of a frame a few ms. Lets an agent choose a scale the run's time allows.
-    private func renderCost() async throws -> [String: Double] {
-        var cost: [String: Double] = [:]
-        for scale in [1, 2] {
-            let start = ContinuousClock.now
-            _ = try await snapshot(scale: scale)
-            let seconds = (ContinuousClock.now - start) / .seconds(1)
-            cost[String(scale)] = (seconds * Double(WebScript.frameRate) * 100).rounded() / 100
-        }
-        return cost
     }
 }
 

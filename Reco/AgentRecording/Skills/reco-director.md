@@ -20,6 +20,17 @@ You direct: decide everything below, then load the technique skills whose moves 
 Call inspect_page on the product's site and the two to four pages its navigation links to. Web search it, if you can:
 why it is talked about now (a launch, a round, a demo), who uses it, what they say.
 
+**Look at the site first.** inspect_page sends a picture of each page from top to foot. Study it before anything else, and
+write down the site's **kit**, what every frame of the film is made of:
+
+- its ground: the colour behind its sections, and any glow, gradient, grid or texture it paints (only what it paints);
+- its surfaces: `brand.surface` (fill, border, corners) and shapes of its own (a tab notched into a panel, a pill rail, a
+  card's inset, a dotted rule);
+- its colours by what they're on, from `brand.colors` (`near` names the words beside them): a trace's purple and orange bars,
+  a passing check's green, a failing row's red, a banner's orange. The film paints each on the same kind of thing;
+- its signature pieces, what only this site draws: a trace's coloured bars, a waveform of gradient bars, tabs with icons, a
+  wall of customer logos, book covers, its photos, its code in its own token colours.
+
 Find:
 
 - its name, its mark (letters or a symbol) and its own line;
@@ -27,7 +38,8 @@ Find:
   real thing a user would put in it;
 - what it gives back, and its proof (numbers it states, customers, speed);
 - its **brand kit**, from inspect_page's `brand`: `fonts` (the heading's and body's font files), `heading` (weight,
-  tracking, capitals, size), `palette` (painted colours, most area first), `gradients`, `radius` (button, card), `accent`,
+  tracking, capitals, size), `colors` and `surface` (above), `palette` (painted colours, most area first), `gradients`,
+  `radius` (button, card), `accent`,
   `background`, `logo`, `motion` (the curves its own transitions use, their middle duration, whether any overshoots, how many
   animations run); and by eye from the pages: its imagery (photos, illustrations, 3D, UI, none), its density, its motif
   (a grid, a waveform, code, a map, a chart, paper, a terminal).
@@ -66,9 +78,11 @@ Every film is drawn in the product's own taste. Set it once with set_style and s
   set in the brand's own face. Weight as its heading (≥ 600 semibold or bold); a heading set in capitals or tight
   (`tracking` below −0.01) is set the same way in the film. Code stays `face: mono`. Without fonts, `face` by `brand.face`.
 - **Colour roles.** The ground: the site's background (`brand.background`) or its darkest or lightest palette colour. The
-  surfaces: the palette's next colours (cards, panels, pills). The accent (`style.accent`): the call to action's colour,
-  kept for what matters (the input's send, the result, the transitions). `style.gradient`: the site's own gradient stops
-  if it paints one. Nothing else: never a colour the site doesn't use.
+  surfaces: `brand.surface`, else the palette's next colours (cards, panels, pills). Each of `brand.colors` on what the site
+  paints it on: if its traces draw purple and orange bars and its passing checks green, the film's do too. The accent
+  (`style.accent`): the call to action's colour, kept for what matters (the input's send, the result, the transitions).
+  `style.gradient`: the site's own gradient stops if it paints one. Nothing else: never a colour the site doesn't use, and
+  never one colour on everything (Mastra 4 painted mastra.ai's purple, orange and green all green).
 - **Shape.** Corners from `radius`: cards at `radius.card`, pills and buttons at `radius.button` (999 is a pill), scaled
   from CSS pixels to the canvas (about 1.5× at 1080p). A square-cornered brand gets square cards; a round one, round.
 - **Ground.** What the scenes stand on: the site's own, lit. Never a flat void: a dark frame has a pool of light, a
@@ -78,7 +92,7 @@ Every film is drawn in the product's own taste. Set it once with set_style and s
 
 | The site | Grounds that fit |
 |---|---|
-| Dark, its colour in its UI (most) | `pool` in its hue; `satin` |
+| Dark, its colour in its UI (most) | `pool` in its hue; `plain` on its background, its panels lit |
 | Dark, painting a gradient or a glow | `aurora` (its gradient); `ember`, `sunlit`, `bloom`, `orb` (toned to 0.45 under type) |
 | Dark, with dots, a grid, halftone or pixels in its own pictures | `swirl`, `warp`, `tide`, `matrix` (0.45 under type) |
 | Light, one clear colour | `haze` with its gradient; `plain` on its background with lit, shadowed cards |
@@ -139,11 +153,9 @@ Two runs for one product must differ in all three.
 
 ## 7. The film is actions
 
-The films users loved (Cal.com's story film, the Spotify Jam film, ElevenLabs' launch) change their picture all the time:
-a hand clicks a pill and its menu opens, a request is typed huge, a button washes with light, tiles pop and flip to done,
-a stack of cards scatters, a slot is circled, a pill morphs to "Booked". Their picture stands still in 11–22 % of the
-film. Films that showed UI on cards that sat there while their rows rose in, the camera pushing or arcing slowly, stood
-still in 40–64 % and read as static slides, however good each frame was.
+The films users loved change their picture all the time (still in 11–22 % of the film): a pill is clicked and its menu
+opens, a request is typed huge, a pill morphs to "Booked". Films of UI on cards that sat there while their rows rose in
+stood still in 40–64 % and read as static slides, however good each frame was.
 
 So write the film as actions before you write any scene: one line each, a verb on a thing, with its time.
 
@@ -156,8 +168,15 @@ So write the film as actions before you write any scene: one line each, a verb o
 ```
 
 - **Something happens at least every 0.5–1 s**, and it changes the picture: a click that opens or changes something,
-  typing, a state changing (a pill morphing, a status swapping, a check), things arriving as a group (a pop from the
-  middle out, a cascade, a scatter), a thing growing to fill the frame, the camera whipping or diving to the next thing.
+  typing, a state changing (a label `retext`ing, a pill morphing, a menu spinning to its choice, a check), things arriving
+  as a group (a pop from the middle out, a cascade, a scatter), a thing growing to fill the frame, the camera whipping or
+  diving to the next thing.
+- **Things change, never swap.** A part shown or hidden at once is a cut inside the scene: Mastra 3's files, errors and
+  eval rows came and went that way (61 of its 114 moves), and it read as "only one or two animations". The thing itself
+  changes: a button's label or a status turns into the next (`retext`: "Running…" to "Success"), a menu spins on its drum to
+  the choice (`wheel`), a pill squashes into a line that grows into a toolbar, its icons popping out of it (`morph`, `pop`),
+  an error `dissolve`s, a panel opens onto what it holds (`lens` by it), a list's rows `cascade` in. `show` and `hide` only
+  for a tile's contents on a beat; the lint names a scene of swaps.
 - **A scene is one action, not a display.** Parts arriving is an entrance, not the action: after its parts arrive, the
   scene does its action (the click, the typing, the swap). A scene with nothing to do is cut, or shortened to a beat.
 - **Six or more different actions in a film**, never the same one twice running. A film of cards rising in is one action.
@@ -166,11 +185,11 @@ So write the film as actions before you write any scene: one line each, a verb o
 
 | The action | Moves | Recipes in |
 |---|---|---|
-| A control used, close | a macro on it, the hand's `click` and `press`, its menu opening (`pop`, `show`), `select` | story, flow, launch |
+| A control used, close | a macro on it, the hand's `click` and `press`, its menu opening (`pop`) and spinning to the choice (`wheel`), `select` | story, flow, launch |
 | The ask | the person's words typed big (`voice`), typed into the box (`type`), the send `wash`ing it | story |
-| The product working | `shimmer` ("Working…"), steps or rows ticking to done (`show`/`hide` swaps, `spin`, `check` glyphs), a `cascade` | story, motion design |
+| The product working | `shimmer` ("Working…"), steps or rows ticking to done (a status `retext`ing, `spin`, `check` glyphs), a `cascade` | story, motion design |
 | The answer arriving | a bento `pop`ping from the middle out, a stack `scatter`ing into a collage, a `reply` word by word, `fly` | story, motion design, flow |
-| A state changing | `morph` (a pill to its next size and colour), `flood`, `burst`, `ripple`, a counter rolling (`roll`) | motion design |
+| A state changing | `retext` (a label to the next), `morph` (a pill to its next size and colour, a pill to a line), `wheel`, `decode`, `flood`, `burst`, `ripple`, a counter rolling (`roll`) | motion design, this skill |
 | One thing becoming the next scene | `grow` to fill the frame, `flood`, `eat` into a block, `flow` (the same id in both), `dive`, `expand` | editorial, motion design, this skill |
 | Words | `brighten`, `letters`, `kinetic`, `sweep`, `wordByWord`, a line laid big over the product's pictures | editorial, motion design |
 | The name | `unfold` (mark into name and line), `letters`, `fly`, `ring` into the logo | editorial, motion design, story |
@@ -192,7 +211,7 @@ product's own things** (section 1), so two products never get the same film:
 | Its control | `expand` or `dive` by it: the next scene opens out of the button or field that was pressed | a request sent, a run started |
 | Its object | `flow`: the same id in both scenes, it travels and becomes the next scene's thing (a row becomes the email, the email the meeting) | between two steps of the product's work |
 | Its object, many | `motif` by it (or the mark): the frame turns over in a grid of copies of it popping out of where it was, each opening onto the next scene | when many of them arrive: leads found, files made, meetings booked |
-| A card, bubble or cell | `through` by it: into what it holds | a detail opening |
+| A card, bubble or cell | `through` or `lens` by it: into what it holds | a detail opening |
 
 - A film uses **at least three of these**, each made of a different thing, at its three biggest turns (the opening, the
   first answer, the end words). `by` on the scene names the layer of the scene before: give it the mark, the word, the
@@ -251,6 +270,11 @@ text can't be read.
 file names, numbers, dates. Never a grey bar for content. A panel has a header, one accent element (the selected row, the
 send, the progress) and the brand's corners.
 
+**No ornament.** No underline under a heading, no accent rule, no line drawing itself, no shape carried from scene to scene
+that isn't the product's: Mastra 4 drew a green line under its code, its tab, its statement, its score and its logo, and the
+user remembered it as "a green line which was everywhere … repeating itself". preview_motion names one (`ornament`). What
+travels between scenes is one of the product's things (section 1) becoming the next.
+
 **Light.** Surfaces are lit: a card is its ground lifted 6–10 % in lightness with a 1 px edge of white at 8–14 %, or glass
 (`glass`); the hero casts a soft shadow or, in a dark film, a glow in the accent under it.
 
@@ -269,7 +293,9 @@ overshoot only in a playful film, never on type.
    - Does the first frame move, and do the first words read by 2 s?
    - Can you say each scene's action in one verb, and each transition's reason? Six or more actions, five or more seams,
      three of them made of the product's own things? Cover the logo: could the transitions belong to another product?
-   - Is every line in the brand's own face, its colours and its corners? Would someone who knows the product's site
+   - Does every change of state move the thing itself (a retext, a morph, a wheel), never a part shown or hidden at once?
+   - Is every line in the brand's own face, its colours and its corners? Is each colour on what the site paints it on, and
+     is nothing drawn that the site doesn't draw (a line, a rule, a texture)? Would someone who knows the product's site
      recognise it with the logo covered?
    - Is every product moment the landing's own UI, in its words and numbers, doing something? A preview scrolled is not.
    - Can you tell the story in one line: who, the job, how it ends? Is the ground the site's own, one for the film?

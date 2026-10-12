@@ -166,7 +166,27 @@ nonisolated extension SoundCueList {
                 add(.whoosh, .effects, at: time + duration / 2, level: SoundRules.whooshLevel - 6, send: 0.2)
             }
         default:
-            break
+            uiState(move, at: time, lasting: duration)
+        }
+    }
+
+    /// UI changing state (spec 0025): a tick as each of a wheel's rows passes its front (half way to the next on the move curve)
+    /// and a whoosh at its fastest when it spins far; a chime as a text decodes.
+    private mutating func uiState(_ move: MotionMove, at time: Double, lasting duration: Double) {
+        if move.kind == .decode {
+            add(.blip(note: SoundRules.popNotes[0], length: 0.25), .effects, at: time, level: SoundRules.retextLevel, pan: -0.1, send: 0.3)
+        }
+        guard move.kind == .wheel else { return }
+        let rows = abs(move.intensity ?? 1)
+        let count = max(Int(rows.rounded()), 1)
+        for row in 0..<count {
+            let reached = (Double(row) + 0.5) / Double(count)
+            let step = (0...240).first { MotionEasing.move.progress(Double($0) / 240, duration: duration) >= reached } ?? 240
+            add(.key(.letter), .effects, at: time + Double(step) / 240 * duration, level: SoundRules.wheelTickLevel,
+                pan: random.uniform(SoundRules.keyPan), send: SoundRules.keySend)
+        }
+        if rows >= SoundRules.wheelWhooshRows {
+            add(.whoosh, .effects, at: time + duration * 0.45, level: SoundRules.whooshLevel - 9, send: 0.2)
         }
     }
 

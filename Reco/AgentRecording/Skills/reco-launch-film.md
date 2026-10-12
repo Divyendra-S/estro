@@ -183,7 +183,7 @@ Choose one look from inspect_page's brand and what the product is, and keep the 
 
 | Look | Fields | Seams | For |
 |---|---|---|---|
-| Satin | `satin` | cut, whip | A brand without a hue (black, white, grey accent), or a dark UI whose colour is all in the UI |
+| Satin | `satin` | cut, whip | A brand without a hue (black, white, grey accent) whose site shows nothing behind its UI that the film could stand on |
 | Light | `ember`, `sunlit`, `bloom`, `orb`, `ripple` | cut, whip, glow; ring into the closing | A brand with a clear hue: AI, design, creative and consumer products |
 | Dither | `matrix`, `warp`, `swirl`, `tide` | cut, whip, dither; ring into the closing | A site whose own pictures have dots, a grid, halftone or pixels |
 

@@ -104,8 +104,7 @@ in view: at 3.6× the frame is 533×300 canvas pixels, so put the camera 100 rig
 - The hand is drawn as large as the camera shows the canvas, so in macro it's as big as the pill.
 - A press that changes the control:
   - the pill `{"move": "morph", "start": 0.7, "color": "<the new colour>", "duration": 0.12}`;
-  - the old label `{"move": "hide", "start": 0.7}`;
-  - a second label in the same place `{"move": "show", "start": 0.7}`. Both swap on the same frame.
+  - its label turning into the new one `{"move": "retext", "start": 0.7, "words": ["Merged"]}`.
 - **The finish** (merge, ship, build, deploy): a 1190×240 bar of glass with the work's title (46, `medium`) and a note (34,
   dim), its button 300×96 at [390, 0] in the product's primary style (a light one: `#f4f4f5`, its label the ground's
   dark). The camera at 2–2.5× on the button (`[1330, 540, 1040]`, panning to `[1350, 540]`), the click at 0.5, a morph to
@@ -197,8 +196,8 @@ product's own tile in the middle, inverted: its light colour, its logo and the p
 
 Layout: the middle tile 510×510 at [0, 0]; four tiles 400×245 at [±475, ±132.5]; two tiles 680×160 at [±350, 355]; the
 group at [960, 450], 1350 wide. They pop 0.07 s apart from the middle out with a small spin (alternate its sign), from
-0.706 after the look's seam (from 0 after a cut), and on a later beat every tile's status swaps at once (`hide` the old
-chip, `show` the new, the same moment). The scene's camera `{"move": "push", "start": 0, "intensity": 0.6}`.
+0.706 after the look's seam (from 0 after a cut), and on a later beat every tile's status turns at once (its chip's
+label `retext`s, the chip `morph`s to the done colour). The scene's camera `{"move": "push", "start": 0, "intensity": 0.6}`.
 
 ```json
 {"id": "aClaude", "content": {"group": [

@@ -144,8 +144,8 @@ extension AgentTools {
         return reply
     }
 
-    /// A JPEG of the sheet: the grammar fixture's 8 frames come to 89 KB (M5, `MotionAgentTests`).
-    nonisolated private static func jpegData(of image: CGImage) -> Data? {
+    /// A JPEG of a sheet: the grammar fixture's 8 frames come to 89 KB (M5, `MotionAgentTests`).
+    nonisolated static func jpegData(of image: CGImage) -> Data? {
         let data = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(data, UTType.jpeg.identifier as CFString, 1, nil) else { return nil }
         CGImageDestinationAddImage(destination, image, [kCGImageDestinationLossyCompressionQuality: 0.85] as CFDictionary)

@@ -269,6 +269,7 @@ enum WebInspectScript {
       return listed;
     };
     \#(picturesFunction)
+    \#(colorsFunction)
     const description = (document.querySelector('meta[name="description" i], meta[property="og:description"]')?.content || '').trim();
     const result = {
       title: document.title,
@@ -299,6 +300,8 @@ enum WebInspectScript {
         try {
           const brand = brandOf();
           try { brand.fonts = await fontsOf(); } catch {}
+          try { brand.colors = await colorsOf(); } catch {}
+          try { brand.surface = surfaceOf(); } catch {}
           return brand;
         } catch {
           return undefined;

@@ -96,7 +96,8 @@ final class AgentTools {
         do {
             switch name {
             case AgentToolCatalog.inspectPage:
-                return Reply(text: try Self.encode(try await inspect(arguments)), isError: false)
+                let (inspection, look) = try await inspect(arguments)
+                return Reply(text: try Self.encode(inspection), image: look, isError: false)
             case AgentToolCatalog.recordPage:
                 let status = try await record(arguments)
                 return Reply(text: try Self.encode(status), isError: status.status == .failed)
@@ -122,13 +123,15 @@ final class AgentTools {
 
     // MARK: - Tools
 
-    private func inspect(_ arguments: Data) async throws -> PageInspection {
+    /// The page's inspection, and a JPEG of it from top to foot for the agent to see (spec 0026).
+    private func inspect(_ arguments: Data) async throws -> (PageInspection, Data?) {
         let request = try Self.decode(InspectPageRequest.self, from: arguments)
         let script = try request.validated()
         inspecting = script.url
         defer { inspecting = nil }
         return try await Self.withDeadline(Self.inspectLimit) {
-            try await WebPageRenderer(script: script).inspect(selectors: request.selectors ?? [])
+            let (inspection, look) = try await WebPageRenderer(script: script).inspect(selectors: request.selectors ?? [], looking: true)
+            return (inspection, look.flatMap(Self.jpegData(of:)))
         }
     }
 

@@ -23,7 +23,8 @@ struct GraphicSeamTests {
             ))
         }
 
-        let (before, after, middle) = (try Self.bytes(of: Self.outgoing), try Self.bytes(of: Self.incoming), try draw(0.5))
+        // A lens opens out-expo, past the frame's corners before half way
+        let (before, after, middle) = (try Self.bytes(of: Self.outgoing), try Self.bytes(of: Self.incoming), try draw(seam == .lens ? 0.2 : 0.5))
         #expect(Self.most(try draw(0), before) <= 1)
         #expect(Self.most(try draw(1), after) <= 1)
         #expect(Self.most(middle, before) > 40 && Self.most(middle, after) > 40)

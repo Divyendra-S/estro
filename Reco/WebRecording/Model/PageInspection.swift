@@ -91,6 +91,33 @@ nonisolated struct PageInspection: Codable, Equatable, Sendable {
 
         /// How the site moves, for the video to move as it does (spec 0023).
         var motion: Motion?
+
+        /// Every colour on the page that isn't a grey, however small, most used first (spec 0026); and how its panels are drawn.
+        var colors: [Color]?
+        var surface: Surface?
+    }
+
+    nonisolated struct Color: Codable, Equatable, Sendable {
+
+        /// `#rrggbb`, whatever its alpha.
+        var color: String
+
+        /// `text`, `fill`, `line`, `gradient`, or `picture` (inside one of the page's SVG pictures).
+        var used: [String]
+
+        /// The words nearest a few of the things painted in it, or the picture's file.
+        var near: [String]
+        var count: Int
+    }
+
+    nonisolated struct Surface: Codable, Equatable, Sendable {
+
+        /// `#rrggbb`, or `#rrggbbaa` when translucent; `nil` when clear.
+        var background: String?
+
+        /// Its edge as `<width>px <colour>`; `nil` without one.
+        var border: String?
+        var radius: Double
     }
 
     nonisolated struct Motion: Codable, Equatable, Sendable {

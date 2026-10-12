@@ -20,7 +20,7 @@ nonisolated extension SoundCueList {
                 add(.thump(high: landing.high, low: landing.low, length: landing.length, decay: landing.decay), .effects, at: lands,
                     level: landing.level - landing.step * Double(index), send: 0.1)
             }
-        case .iris, .liquid:
+        case .iris, .lens, .liquid:
             let (riser, glass) = (SoundRules.openRiser, SoundRules.openGlass)
             add(.riser(length: riser.length, low: riser.low, high: riser.high, power: riser.power), .effects, at: time + riser.peak * duration,
                 level: riser.level, send: 0.3)

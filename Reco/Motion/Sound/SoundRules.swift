@@ -88,6 +88,12 @@ nonisolated enum SoundRules {
     /// A press, a click: a key.
     static let pressLevel = -14.0
 
+    /// A wheel ticks as each row passes its front, under a key; a long spin (three rows or more) whooshes at its fastest. A text
+    /// turning into another chimes once, under a pop (spec 0025).
+    static let wheelTickLevel = -19.0
+    static let wheelWhooshRows = 3.0
+    static let retextLevel = -26.0
+
     /// A flood: a riser into the fill, and a low hit as it covers the frame, this long into the fill.
     static let floodRiser = (length: 0.45, low: 600.0, high: 5000.0, power: 2.0, level: -20.0)
     static let floodThump = (high: 72.0, low: 40.0, length: 1.0, decay: 0.2, level: -12.0, after: 0.12)

@@ -71,7 +71,7 @@ nonisolated enum SeamExpansion {
     /// How long each graphic seam takes (spec 0019): as long as its device reads in After Effects launch films, its fastest
     /// edges near the middle; a flash or a glitch is a hit, a liquid or tiles a short flourish.
     static let graphicDurations: [MotionSeam: Double] = [
-        .iris: 0.7, .bars: 0.7, .slats: 0.6, .tiles: 0.8, .split: 0.6, .spin: 0.45, .glitch: 0.4, .pixelate: 0.5, .liquid: 0.9,
+        .iris: 0.7, .lens: 0.65, .bars: 0.7, .slats: 0.6, .tiles: 0.8, .split: 0.6, .spin: 0.45, .glitch: 0.4, .pixelate: 0.5, .liquid: 0.9,
         .flip: 0.75, .cube: 0.75, .flash: 0.35, .stretch: 0.45
     ]
 
@@ -191,7 +191,7 @@ nonisolated enum SeamExpansion {
             outgoing(.scale, 1, 1 + swingOut.push, last: swingOut.duration, easing: .exit)
             incoming(.rotationY, -turn * swingIn.degrees, 0, over: swingIn.duration, easing: .enterFast)
             incoming(.scale, 1 - swingIn.pull, 1, over: swingIn.duration, easing: .enterFast)
-        case .push, .fade, .flow, .stack, .expand, .wipe, .dive, .melt, .glow, .dither, .ring, .through, .motif, .iris, .bars, .slats, .tiles, .split,
+        case .push, .fade, .flow, .stack, .expand, .wipe, .dive, .melt, .glow, .dither, .ring, .through, .motif, .iris, .lens, .bars, .slats, .tiles, .split,
              .spin, .glitch, .pixelate, .liquid, .flip, .cube, .flash, .stretch:
             effect.transition = Transition(seam: seam, duration: duration(of: seam))
         }

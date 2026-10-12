@@ -84,6 +84,10 @@ nonisolated enum MotionSeam: String, Codable, CaseIterable, Sendable {
     /// A disc of the brand's colour opens out of what was clicked (else the middle), the next scene's disc following inside it.
     case iris
 
+    /// A disc of glass opens out of what was clicked (else the middle) onto the next scene, frosted towards its edge, a hairline
+    /// of light round it (spec 0025): into what a thing holds.
+    case lens
+
     /// Two bars in the brand's colours, then the next scene, sweep across one after another, their edges slanted.
     case bars
 
@@ -134,10 +138,10 @@ nonisolated extension MotionSeam {
     }
 
     /// The graphic transitions any look may use, drawn in the brand's colours (spec 0019).
-    static let graphic: Set<MotionSeam> = [.iris, .bars, .slats, .tiles, .split, .spin, .glitch, .pixelate, .liquid, .flip, .cube, .flash, .stretch]
+    static let graphic: Set<MotionSeam> = [.iris, .lens, .bars, .slats, .tiles, .split, .spin, .glitch, .pixelate, .liquid, .flip, .cube, .flash, .stretch]
 
     /// The seams a scene's `by` names the layer of: those made of it, and those that open out of it (else out of what was
     /// clicked last).
     static let madeOfLayer: Set<MotionSeam> = [.through, .motif]
-    static let openFromLayer: Set<MotionSeam> = [.expand, .dive, .iris, .liquid, .tiles]
+    static let openFromLayer: Set<MotionSeam> = [.expand, .dive, .iris, .lens, .liquid, .tiles]
 }

@@ -28,8 +28,9 @@ nonisolated struct MotionPlan: Sendable {
         /// What the layer's moves do to each property (``MoveEffect``).
         var moves: [MotionProperty: [PropertyTrack]] = [:]
 
-        /// How a text layer is revealed, and where its characters and lines are.
+        /// How a text layer is revealed, and where its characters and lines are; how it leaves letter by letter after (spec 0025).
         var reveal: TextReveal?
+        var exit: TextReveal?
         var parts: [CGRect] = []
 
         /// What a focus keeps lit, in canvas pixels from the layer's top-left corner.
@@ -59,6 +60,10 @@ nonisolated struct MotionPlan: Sendable {
         var live: Live?
         var rasterScale = 1.0
 
+        /// A text's or a mark's (a lift in one colour) alpha where it's solid: shown past its raster scale (a seam flying into it),
+        /// its edges are cut sharp half way up to it (``MotionFrameRenderer/crisped(_:solid:sharpness:)``, spec 0026).
+        var solidAlpha: Double?
+
         /// The glass panel its content sits on; `nil` for a layer not on glass.
         var glass: GlassRenderer.Shape?
 
@@ -80,11 +85,6 @@ nonisolated struct MotionPlan: Sendable {
         /// A plain rectangle as it is without its morphs: what a flow carrying it to another changes in between (spec 0020).
         var fill: ShapeMorph.State?
 
-        /// The rectangle at `time`: as its morphs leave it, else as it is.
-        func fill(at time: Double) -> ShapeMorph.State? {
-            morph?.state(at: time) ?? fill
-        }
-
         /// A kinetic reveal's caret, and its newest letters' colour.
         var accent: RGBAColor?
 
@@ -100,9 +100,8 @@ nonisolated struct MotionPlan: Sendable {
         /// Drawn where it is at the frame's own time under motion blur, as a burst's particles are (``BurstExpansion/isParticles(_:)``).
         var isSharp = false
 
-        /// The shadow, blurred once at ``rasterScale`` in the layer's own space and projected with
-        /// it: blurring it per frame cost most of a frame (a 40 px shadow at 1080p). It spans the
-        /// layer and ``shadowPadding`` around it.
+        /// The shadow, blurred once at ``rasterScale`` in the layer's own space and projected with it: blurring it per frame
+        /// cost most of a frame (a 40 px shadow at 1080p). It spans the layer and ``shadowPadding`` around it.
         var shadowImage: CIImage?
 
         /// How far the shadow's blur reaches past the layer, in canvas pixels: 3 σ.
@@ -112,11 +111,6 @@ nonisolated struct MotionPlan: Sendable {
 
         func value(_ property: MotionProperty, at time: Double) -> Double {
             MotionPlan.value(property, base: base[property] ?? 0, track: tracks[property], moves: moves[property], at: time)
-        }
-
-        /// The content's size at `time`: a morphing shape's changes.
-        func size(at time: Double) -> CGSize {
-            morph?.state(at: time).size ?? size
         }
     }
 
@@ -412,6 +406,7 @@ extension MotionPlan {
                 let shown = largest[index] > 0 ? min(largest[index], most) : 1
                 let rasterScale = shown * outputScale
                 scenes[sceneIndex].layers[index].rasterScale = rasterScale
+                scenes[sceneIndex].layers[index].solidAlpha = Self.solidAlpha(of: contents[index])
                 if case .lifted(let lifted) = contents[index], live.contains(lifted.asset) {
                     showLive(lifted.asset, on: MotionPlan.LayerKey(scene: sceneIndex, layer: index), rasterScale: rasterScale,
                              take: takes[lifted.asset], measured: measured[lifted.asset])

@@ -72,7 +72,7 @@ nonisolated struct MotionDocument: Equatable, Sendable {
                 ? "a \(scene.seam.rawValue) needs by: the layer of the scene before it's made of (its mark, a word, an icon, a card)." : nil
         }
         guard MotionSeam.madeOfLayer.union(MotionSeam.openFromLayer).contains(scene.seam) else {
-            return "by names what a through or motif is made of, or what an expand, dive, iris, liquid or tiles opens out of; a \(scene.seam.rawValue) has none."
+            return "by names what a through or motif is made of, or what an expand, dive, iris, lens, liquid or tiles opens out of; a \(scene.seam.rawValue) has none."
         }
         guard let before else { return "by names a layer of the scene before, and the first scene has none." }
         return before.contains(layer) ? nil : "by names \"\(layer)\", which the scene before doesn't have."

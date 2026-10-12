@@ -1566,6 +1566,73 @@ Key facts:
 - `Mastra 3` (19 min, 27.9 s 4K60) after the change: glue code and errors, then the name, the agent's code typed, the landing's
   trace rebuilt and running, the tool call, evals ticking, on `satin`. Still 26 % of the time: the end card holds 4 s.
 
+### S19 — Things change themselves (`remotion`, spec 0025)
+
+Mastra 3 took its UI from the site, but the user saw "only one or two" animations: 61 of its 114 moves were `show`/`hide`.
+In four launch clips the user sent, every change is the thing itself becoming its next state. Films now have moves for UI
+changing state, and a lint finding for scenes cut inside themselves.
+
+| File | Role |
+|---|---|
+| `Motion/Grammar/DocumentExpansion+States.swift` | `retext`: a text as a group of its states at its anchor, each dissolving as the next decodes over it. `wheel`: a group's rows on a drum (`DrumPose`), turned as 60 Hz keyframes |
+| `Motion/Grammar/TextReveal.swift`, `MoveExpansion+States.swift`, `Render/MotionFrameRenderer+Reveal.swift` (`scrambled`) | `decode`, `dissolve`: characters out of order, a decode spread about its anchor and closing up; a dissolve is the plan layer's `exit` |
+| `Motion/Render/TransitionRenderer.swift` (`lensed`), `TransitionKernels.metal.txt` (`lensSeam`) | `lens`: a disc of glass opening onto the next scene, frosted at its edge, a hairline of light, drawn sharp |
+| `Motion/Grammar/MotionLint+Swaps.swift` | `swaps`: most of a scene's moves showing or hiding a part at once, in a place of its own |
+| `Motion/Sound/SoundCueList.swift` (`uiState`) | A tick a wheel's row, a whoosh past three rows, a chime as a text decodes |
+
+Key facts:
+- **Measured on the clips** (`~/Movies/Reco/references/x-four/`, 30 fps):
+  - Old letters went in 0.23 s. New ones started 0.12 s later and arrived over 0.45 s, spread to 1.35× and closing up.
+  - A menu spun about six rows in 0.55 s on a drum, two rows visible each side.
+  - The lens was a sixth of the width 0.03 s in and past the corners by 0.3 s, out-expo.
+- **The lens unblurred:** motion blur smeared its fast rim into a grey ring 60 px wide, so it is drawn sharp, with frost a
+  tenth of its radius at 30 % white.
+- **The `swaps` lint** names a scene where at least four moves, and half of all its moves, show or hide a part at once in
+  its own place. A part swapped where another part is (Lovable's bento, ElevenLabs' pictures) is not named.
+- **`Mastra 4`** from the app (22 min, 20.1 s 4K60, `~/Desktop/Mastra v4.mp4`):
+  - The document has no `show` or `hide`: 24 morphs and 8 retexts.
+  - The trace's Running turns into its timings, a lens opens from the tool row onto the tool call, and evals turn 2/4 into
+    4/4.
+  - It was still 39 % of the time: the statement held about 2 s and the end 2.5 s.
+
+### S20 — The site's kit, seen sharp (`remotion`, spec 0026)
+
+Mastra 4 had blurry zooms. A green accent line repeated through five of its seven scenes. Nothing in it came from
+mastra.ai's look: the agent read the site only as text, and `palette` (by area) gave it seven greys. Now `inspect_page`
+shows the agent the site and lists every colour on it. Zoom seams draw the scene before through a magnified view. A lint
+names a repeated decoration.
+
+| File | Role |
+|---|---|
+| `WebRecording/Service/WebPageRenderer+Inspect.swift` | `inspect(selectors:looking:)`: the page top to foot, at most nine screens, as one sheet (`ContactSheet`, 640 px tiles) in `inspect_page`'s reply |
+| `WebRecording/Service/WebInspectScript+Colors.swift`, `Model/PageInspection.swift` (`Color`, `Surface`) | `brand.colors`: non-grey colours however small (fills, text, borders, SVG fills, gradient stops, inside SVG pictures), how each is `used`, the words `near` it. `brand.surface`: the panels' fill, border, radius, alpha kept |
+| `Motion/Render/MotionFrameRenderer+Through.swift` (`seamView`, `crisped`), `MotionPlan+Placement.swift` (`viewed`) | A through or dive draws the scene before through the seam's magnified view, from its layers' images; text past its raster scale and the through's window keep crisp edges |
+| `Motion/Render/MotionFrameRenderer+Seams.swift` | Zoom seams (expand, dive, through) drawn at the frame's own time, with no defocus. An expand turns to the next scene's ground |
+| `Motion/Grammar/MotionLint+Ornament.swift` | `ornament`: a thin line of one colour on its own in three scenes or more |
+| `Motion/Render/MotionFrameRenderer+Sharpness.swift` | `crisped`, `travel` (corners held in the frame), `blurLength`: motion blur under whip speed held to 1.2 % of the height |
+| `Motion/Render/MotionPlan+Handoff.swift` | A flow slides and fades without blur, its offsets within 0.15 s, the scene before gone 0.07 s after the cut |
+| `AgentRecording/Skills/reco-director.md` | Research starts from the site's picture and its kit. Colours go on what the site paints them on. No ornament. Dark sites go to `pool` or `plain`, not satin |
+
+Key facts:
+- **Text past its raster.** Its alpha is cut at half its solid value (`solidAlpha`: the text colour's, or a tinted lift's)
+  over about a pixel, with a colour matrix and a clamp. It applies past 1.5× its raster scale.
+- **Motion blur.** Under 4 frame widths a second it is at most 13 px at 1080p, and it grows to the full travel by 5 (a
+  whip). The samples span that share of the shutter: fewer samples across the whole shutter only stepped the blur. Mastra 5's
+  2× zoom-pan in 0.55 s had smeared its eval table about 60 px.
+- **The through's window.** It is eroded at the unmagnified size (a 720 px morphology radius magnified would not run),
+  then magnified and crisped the same way.
+- **Shapes** magnified past their raster still soften.
+- **The expand's stages.** The control goes by 0.25, the colour turns over 0.05–0.3, and the next scene comes up over
+  0.15–0.5. At 0.1–0.55, a white send button made a grey slab.
+- **The look sheet.** `inspect_page` took 7–8 s on mastra.ai with it.
+- **`Mastra 5`** from the app (30 min with its export, 22.6 s 4K60), with the site's kit:
+  - `pool` in its green; the trace's purple, green and orange bars; red failing evals.
+  - A through by the mark into the trace, and 62 % turning to 98.2 %.
+  - It ends on the site's own hero line, then the wordmark. No repeated line.
+  - Still 27 % of the time.
+  - Re-exported by the app after the second round (sharp flows, blur held short of a whip, crisp marks), it is still 25 %
+    of the time. The re-export is `~/Desktop/Mastra v5.mp4`.
+
 ### Telemetry JSON (version 3)
 
 ```
@@ -1649,7 +1716,9 @@ should hold but need re-measuring.
 | S15 the After Effects bar (spec 0020) | Camera angle, arc and depth of field, `swing`, `flow` (shared element and layered handoff), the `pool` ground, small and flat checks, the director's craft section, after the user found Cardboard 2 basic. Next: Cardboard from the app, the user's verdict |
 | S16 films are actions (spec 0021) | The picture-still check in `preview_motion`, the director rewritten around actions and UI facing the viewer, after the user found Cardboard 5 static. Next: Cardboard from the app, the user's verdict |
 | S17 transitions that read (spec 0022) | Expand as a container transform, a lit stack, seams sized by the frame, the `carried` lint and the director's cut rules, after the user asked for better transitions on Cardboard 6. A Cardinal film from the app (29 s, 4K60). Next: the user's verdict |
-| S18 the product as its site shows it (spec 0024) | `pictures` in `inspect_page`, the director builds films from the site's own pictures of the product and avoids the template arc, after the user found Mastra "really bad" (no UI, repeated). `Mastra 2` made from the app; the user found it "really bad" again (screenshots, no story, the same shader). The landing's UI rebuilt as layers that act, a story required, the ground from the site. `Mastra 3` made from the app. Next: the user's verdict |
+| S18 the product as its site shows it (spec 0024) | `pictures` in `inspect_page`, the director builds films from the site's own pictures of the product and avoids the template arc, after the user found Mastra "really bad" (no UI, repeated). `Mastra 2` made from the app; the user found it "really bad" again (screenshots, no story, the same shader). The landing's UI rebuilt as layers that act, a story required, the ground from the site. `Mastra 3` made from the app; the user found its UI right and its animations few |
+| S19 things change themselves (spec 0025) | `retext`, `decode`, `dissolve`, `wheel`, the `lens` seam, the `swaps` lint and the director's "change, never swap" after the user's verdict on Mastra 3. `Mastra 4` from the app (20 s 4K60, no show/hide, 8 retexts, a lens); the user found its zooms blurry and a green line repeating, and asked for the site's own look |
+| S20 the site's kit, seen sharp (spec 0026) | `inspect_page` shows the page and lists its colours and surface; zoom seams drawn through a magnified view, crisp text; expand to the next ground; the `ornament` lint; the director builds from the site's kit; motion blur held short of a whip, flows sharp, marks crisp. `Mastra 5` from the app (22.6 s 4K60, the site's colours, `pool`). Next: the user's verdict |
 
 What to build next: `docs/specs/0012-motion-quality.md` (October 2026), phases Q1–Q6; spec 0011's phases 5–7 wait for it. The earlier
 order: `docs/specs/0009-stand-out-roadmap.md`. The N items' details, ranked from a September 2026 survey of competitors and Apple's on-device APIs:

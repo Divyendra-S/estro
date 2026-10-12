@@ -28,11 +28,14 @@ nonisolated enum MotionFrameRenderer {
     /// as a jump (spec 0012, L1c); a still frame is drawn once.
     static func image(at time: Double, plan: MotionPlan, frames: [MotionPlan.LayerKey: CIImage] = [:]) -> CIImage {
         let shutter = 0.5 / Double(plan.frameRate)
+        // Sampled across the share of the shutter its blur spans: all of it for a whip, less for a slower move
+        let travelled = travel(at: time, across: shutter, plan: plan)
+        let length = blurLength(of: travelled, across: shutter, size: plan.outputSize)
         // An editorial film is drawn sharp, as ElevenLabs' is: its card's edge stayed a pixel wide growing 52 px a frame
         let offsets = plan.isEditorial ? [0] : FrameRenderer.blurOffsets(
-            distance: travel(at: time, across: shutter, plan: plan), most: plan.isPreview ? previewBlurSamples : exportBlurSamples,
+            distance: length, most: plan.isPreview ? previewBlurSamples : exportBlurSamples,
             spacing: plan.isPreview ? FrameRenderer.blurSampleSpacing : exportBlurSpacing
-        )
+        ).map { $0 * (travelled > 0 ? length / travelled : 1) }
         let scene = plan.scenes[plan.sceneIndex(at: time)]
         // Inside the scene: a shutter open across a cut would blend the two shots
         let times = offsets.map { min(max(time + $0 * shutter, scene.start), scene.start + scene.duration - 1e-6) }
@@ -46,24 +49,6 @@ nonisolated enum MotionFrameRenderer {
         return FieldRenderer.grained(frame, index: Int((time * Double(plan.frameRate)).rounded()), size: plan.outputSize)
     }
 
-    /// How far the planes and pointers on screen at `time` move while a shutter `shutter` seconds long is open, in
-    /// output pixels: the most any of their corners or tips travels. Layers drawn sharp don't count.
-    private static func travel(at time: Double, across shutter: Double, plan: MotionPlan) -> Double {
-        let (scene, sceneTime) = plan.scene(at: time)
-        let (opens, closes) = (sceneTime - shutter / 2, sceneTime + shutter / 2)
-        let moving = { (time: Double) in plan.placements(of: scene, at: time).filter { !scene.layers[$0.layer].isSharp } }
-        let closing = Dictionary(moving(closes).map { ($0.layer, $0.corners) }) { first, _ in first }
-        let travel = moving(opens).map { opening in
-            closing[opening.layer].map { corners in
-                zip(opening.corners, corners).map { hypot($0.x - $1.x, $0.y - $1.y) }.max() ?? 0
-            } ?? 0
-        }
-        let pointers = zip(pointerTips(of: scene, at: opens, plan: plan), pointerTips(of: scene, at: closes, plan: plan)).map { tips in
-            tips.0.flatMap { from in tips.1.map { hypot($0.x - from.x, $0.y - from.y) } } ?? 0
-        }
-        return max(((travel + pointers).max() ?? 0) * plan.outputScale, seamTravel(into: plan.sceneIndex(at: time), at: sceneTime, across: shutter, plan: plan))
-    }
-
     /// The frame at `time` as a shutter open for an instant sees it, with layers drawn sharp where they are at `sharp`, the
     /// frame's own time.
     private static func still(at time: Double, sharpAt sharp: Double, plan: MotionPlan, frames: [MotionPlan.LayerKey: CIImage]) -> CIImage {
@@ -75,14 +60,18 @@ nonisolated enum MotionFrameRenderer {
         var frame = sceneImage(index, at: sceneTime, sharpAt: sharpTime, plan: plan, frames: frames)
         // Under a transition, the scene before goes on from its end
         if let transition = plan.scenes[index].transition, index > 0, sceneTime < transition.duration {
-            let previous = sceneImage(
-                index - 1, at: plan.scenes[index - 1].duration + sceneTime, sharpAt: plan.scenes[index - 1].duration + sharpTime, plan: plan, frames: frames
-            )
             // A seam that cuts inside itself (pixels, a glitch, dots, a spin, a stretch, a flash) is drawn at the frame's own time:
-            // averaged across the shutter, its cut drew both scenes grey, and the ones that move blur themselves
-            let stepped: Set<MotionSeam> = [.pixelate, .glitch, .dither, .spin, .stretch, .flash]
+            // averaged across the shutter, its cut drew both scenes grey, and the ones that move blur themselves. So is a zoom (an
+            // expand, a dive, a through): averaged, Mastra 4's smeared the scene coming up into a blur
+            let stepped: Set<MotionSeam> = [.pixelate, .glitch, .dither, .spin, .stretch, .flash, .expand, .dive, .through]
+            let seamTime = stepped.contains(transition.seam) ? sharpTime : sceneTime
+            // A through or a dive flies into the scene before: it's drawn magnified from its layers' own images
+            let previous = sceneImage(
+                index - 1, at: plan.scenes[index - 1].duration + sceneTime, sharpAt: plan.scenes[index - 1].duration + sharpTime, plan: plan, frames: frames,
+                view: seamView(into: index, at: seamTime, plan: plan)
+            )
             frame = transition.seam == .flow ? handedOff(into: index, at: sceneTime, sharpAt: sharpTime, plan: plan, frames: frames)
-                : transitioned(previous, frame, into: index, at: stepped.contains(transition.seam) ? sharpTime : sceneTime, plan: plan)
+                : transitioned(previous, frame, into: index, at: seamTime, plan: plan)
         }
         // An opening's control coming in over its ground alone, which is all there is before it
         if let arrival = plan.scenes[index].arrival, case let since = sceneTime - plan.scenes[index].arrivesAt, since < arrival.duration {
@@ -102,17 +91,24 @@ nonisolated enum MotionFrameRenderer {
     }
 
     /// A scene's layers at `time` in it, blurred as its camera is, over its field; layers drawn sharp where they are at
-    /// `sharp`. Layers whose ids are `hiding` are left out, and without `onField` the field too.
+    /// `sharp`. Layers whose ids are `hiding` are left out, and without `onField` the field too. Seen through `view` (output
+    /// pixels), every layer is drawn there from its own image (``MotionPlan/Placement/viewed(through:canvas:outputScale:)``).
     static func sceneImage(
         _ index: Int, at time: Double, sharpAt sharp: Double, plan: MotionPlan, frames: [MotionPlan.LayerKey: CIImage],
-        hiding: Set<String> = [], onField: Bool = true
+        hiding: Set<String> = [], onField: Bool = true, view: CGAffineTransform? = nil
     ) -> CIImage {
         let scene = plan.scenes[index]
-        let field = ground(index, at: time, plan: plan)
+        let bounds = CGRect(origin: .zero, size: plan.outputSize)
+        var field = ground(index, at: time, plan: plan)
         var image = CIImage.empty()
         var placements = plan.placements(of: scene, at: time, shown: sharp)
         if sharp != time, scene.layers.contains(where: \.isSharp) {
             placements = sharpened(placements, at: plan.placements(of: scene, at: sharp), of: scene)
+        }
+        if let view {
+            placements = placements.map { $0.viewed(through: view, canvas: plan.canvas, outputScale: plan.outputScale) }
+            // The ground is soft: magnified, it stays as it was
+            field = field.clampedToExtent().transformed(by: view).cropped(to: bounds)
         }
         // Registration marks go under the layer they frame, over what's drawn before it
         var marked = scene.layers.indices.filter { scene.layers[$0].marks?.shown.contains(time) ?? false }
@@ -125,8 +121,7 @@ nonisolated enum MotionFrameRenderer {
                   let layerImage = layerImage(placement, in: index, over: field, at: time, placements: placements, plan: plan, frames: frames) else { continue }
             image = layerImage.composited(over: image)
         }
-        image = pointers(of: scene, at: time, plan: plan).composited(over: image)
-        let bounds = CGRect(origin: .zero, size: plan.outputSize)
+        image = pointers(of: scene, at: time, plan: plan).transformed(by: view ?? .identity).composited(over: image)
         let blur = scene.cameraValue(.blur, at: time) * plan.outputScale
         if blur >= 0.3 {
             image = image.clampedToExtent().applyingGaussianBlur(sigma: blur).cropped(to: bounds)
@@ -300,6 +295,10 @@ nonisolated enum MotionFrameRenderer {
     /// The layer's image on its quad, with its blur, depth of field, opacity and shadow.
     static func drawn(_ image: CIImage, layer: MotionPlan.Layer, at placement: MotionPlan.Placement, time: Double, plan: MotionPlan) -> CIImage {
         var drawn = projected(image, to: placement.corners, plan: plan)
+        // A text or a mark magnified past its raster scale keeps sharp edges
+        if let solid = layer.solidAlpha, case let past = placement.scale * plan.outputScale / layer.rasterScale, past > crispPast {
+            drawn = crisped(drawn, solid: solid, sharpness: past)
+        }
         if let picture = layer.picture {
             drawn = pictured(drawn, picture, on: placement, at: time, plan: plan)
         }

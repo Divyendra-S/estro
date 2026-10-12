@@ -18,7 +18,11 @@ nonisolated enum TransitionRenderer {
         origin: CGPoint?, size: CGSize
     ) -> CIImage {
         let seam = Seam(transition: transition, scenes: scenes, progress: moment.progress, time: moment.time, origin: origin, size: size)
-        let image = [.split, .flip, .cube, .flash, .stretch].contains(transition.seam) ? spatial(seam) : masked(seam)
+        let image = switch transition.seam {
+        case .lens: lensed(seam)
+        case .split, .flip, .cube, .flash, .stretch: spatial(seam)
+        default: masked(seam)
+        }
         return (image ?? scenes.next).cropped(to: CGRect(origin: .zero, size: size))
     }
 
@@ -106,6 +110,19 @@ nonisolated enum TransitionRenderer {
         }
     }
 
+    /// A lens opening out of the origin, past the corners by its frosted band so the frost leaves the frame.
+    private static func lensed(_ seam: Seam) -> CIImage? {
+        let (progress, centre) = (seam.progress, seam.origin ?? seam.middle)
+        let opened = MotionEasing.enterFast.progress(min(progress / lensOpen, 1), duration: 1)
+        let radius = farthest(from: centre, size: seam.size) / (1 - lensBand) * opened
+        let settled = MotionEasing.enterFast.progress(progress, duration: 1)
+        return apply("lensSeam", seam.sampled + [
+            seam.frame(1 - smooth(progress, from: lensClear.from, to: lensClear.to)),
+            CIVector(x: centre.x, y: centre.y, z: radius, w: min(radius * lensBand, lensWidest * seam.unit)),
+            CIVector(x: 1 + lensPush * opened, y: lensFrom - (lensFrom - 1) * settled)
+        ], size: seam.size)
+    }
+
     /// The seams that move whole frames in space.
     private static func spatial(_ seam: Seam) -> CIImage? {
         let (scenes, progress, size) = (seam.scenes, seam.progress, seam.size)
@@ -128,7 +145,7 @@ nonisolated enum TransitionRenderer {
 
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Reco", category: "TransitionRenderer")
 
-    private static let kernelNames = ["irisSeam", "barsSeam", "slatsSeam", "tilesSeam", "glitchSeam", "pixelSeam", "liquidSeam", "spinSeam", "motifSeam"]
+    private static let kernelNames = ["irisSeam", "lensSeam", "barsSeam", "slatsSeam", "tilesSeam", "glitchSeam", "pixelSeam", "liquidSeam", "spinSeam", "motifSeam"]
 
     /// Compiled from `TransitionKernels.metal.txt` the first time one is drawn, each alone, as the fields are.
     private static let kernels: [String: CIKernel] = {
@@ -200,6 +217,17 @@ nonisolated enum TransitionRenderer {
     static let irisLead = 0.85
     static let irisPush = 0.08
     static let irisFrom = 1.15
+
+    /// A lens (`~/Movies/Reco/references/x-four/`, a TV on a hill opening onto a field): its disc a sixth of the frame's width
+    /// 0.03 s in and past the corners by 0.3 s, out-expo, so it opens over the first 0.55 of the seam; a frosted band a tenth of
+    /// its radius (at most 120 px at 1080p), clearing from 0.35 to 0.8 of the way (at 0.16 and 55 % white it read as a grey
+    /// ring, and stayed in the corners); the next scene settling from 1.25×, the one before pushed 4 % closer.
+    static let lensOpen = 0.55
+    static let lensClear = (from: 0.35, to: 0.8)
+    static let lensBand = 0.1
+    static let lensWidest = 120.0
+    static let lensPush = 0.04
+    static let lensFrom = 1.25
 
     /// Bars follow each other 0.13 of the seam apart, their edges leaning 0.18 of the span; the next scene slides a quarter of the
     /// span behind its bar.
