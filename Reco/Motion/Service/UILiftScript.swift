@@ -22,21 +22,50 @@ enum UILiftScript {
     /// out as the page scrolls, and centred it read opacity 0.09. The wait lets lazy images and
     /// reveal animations that start on scrolling finish (spike B); then the finite animations on
     /// the element, its ancestors and inside it, up to 5 s: linear.app's hero fades in over ~2 s
-    /// after loading, and lifted a second in it read opacity 0.
+    /// after loading, and lifted a second in it read opacity 0. Then, up to 5 s more, until it's wholly
+    /// shown and still: a script's reveal is no animation the page lists, and baseten.co's art is hidden
+    /// 1.4 s after loading, then rises 58 px into place over 0.8 s. Instantly, as the page's smooth
+    /// scrolling (baseten.co's) still had its art gliding up past the view's foot a second later. And
+    /// again, up to three times, by as much as the page shows it out of view, while it is: WebKit's own
+    /// scroll left baseten.co's art 17–25 px, and its globe a whole height, below the view each time.
     static let place = #"""
     const element = document.querySelector(selector);
     if (!element) return null;
-    element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    await new Promise(resolve => setTimeout(resolve, 900));
-    const entering = document.getAnimations().filter(animation => {
-      const target = animation.effect?.target;
-      const end = animation.effect?.getComputedTiming().endTime ?? Infinity;
-      return target && Number.isFinite(end) && (target.contains(element) || element.contains(target));
-    });
-    await Promise.race([
-      Promise.all(entering.map(animation => animation.finished.catch(() => null))),
-      new Promise(resolve => setTimeout(resolve, 5000))
-    ]);
+    const shown = () => {
+      let opacity = getComputedStyle(element).visibility === 'hidden' ? 0 : 1;
+      for (let node = element; node; node = node.parentElement) opacity *= parseFloat(getComputedStyle(node).opacity);
+      return opacity;
+    };
+    const past = (low, high, size) => low < 0 ? low : high > size ? high - size : 0;
+    for (let tries = 0; tries < 3; tries++) {
+      if (tries === 0) {
+        element.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+      } else {
+        const out = element.getBoundingClientRect();
+        scrollBy({ left: past(out.left, out.right, innerWidth), top: past(out.top, out.bottom, innerHeight), behavior: 'instant' });
+      }
+      await new Promise(resolve => setTimeout(resolve, 900));
+      const entering = document.getAnimations().filter(animation => {
+        const target = animation.effect?.target;
+        const end = animation.effect?.getComputedTiming().endTime ?? Infinity;
+        return target && Number.isFinite(end) && (target.contains(element) || element.contains(target));
+      });
+      await Promise.race([
+        Promise.all(entering.map(animation => animation.finished.catch(() => null))),
+        new Promise(resolve => setTimeout(resolve, 5000))
+      ]);
+      let last = '';
+      for (const until = performance.now() + 5000; performance.now() < until;) {
+        const now = element.getBoundingClientRect();
+        const place = [now.x, now.y, now.width, now.height].join();
+        if (shown() > 0.99 && place === last) break;
+        last = place;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      const now = element.getBoundingClientRect();
+      const fits = now.width <= innerWidth + 1 && now.height <= innerHeight + 1;
+      if (!fits || (now.left >= -1 && now.top >= -1 && now.right <= innerWidth + 1 && now.bottom <= innerHeight + 1)) break;
+    }
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const box = element.getBoundingClientRect();
     const backgrounds = [];
@@ -62,7 +91,7 @@ enum UILiftScript {
     static let click = #"""
     const element = document.querySelector(selector);
     if (!element) return false;
-    element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    element.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
     element.click();
     return true;
     """#

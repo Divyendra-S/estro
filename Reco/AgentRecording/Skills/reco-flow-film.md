@@ -56,6 +56,8 @@ Every change of scene is one of these, and you can name its reason:
 - **Gradient:** `style.gradient` is the light's colours from pale to deep: 2–3 colours of the brand. A strong, saturated
   brand (Vantae's blue) runs to its deepest colour: `["#7cc4fa", "#0b92f6", "#0436e7"]`. A soft brand (IrukaDark's
   pastels) stays light: `["#e9d5ff", "#f9a8d4", "#fdba74"]`. Never colours the brand doesn't have.
+  A black-and-white brand's light stays pale, no stop darker than `#d4d8de`: Solve's `#8f959e` lit the corners in grey
+  smudges.
 - **Type:** ink (`#0d1220`, or the product's text colour) on white; `accent` the brand's colour (the send button, the
   typing caret, the mark).
 - **Surfaces:** white (`#ffffff`) with the soft shadow `{"opacity": 0.16, "radius": 40, "offset": 14}`, a 2 px rim in a

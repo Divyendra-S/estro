@@ -6,8 +6,8 @@
 import CoreImage
 
 /// A flow seam drawn (spec 0020, ``MotionPlan/handOff(from:to:way:canvas:)``): one ground, the scene before's layers leaving,
-/// the next's arriving over them, and what both scenes have travelling on top from one place to the other, as Keynote's Magic
-/// Move and After Effects' shared elements do.
+/// the next's arriving over them, and what both scenes have travelling from one place to the other, as Keynote's Magic Move and
+/// After Effects' shared elements do.
 nonisolated extension MotionFrameRenderer {
 
     /// The frame `time` into a flow into the scene at `index`; layers drawn sharp where they are at `sharp`.
@@ -22,18 +22,21 @@ nonisolated extension MotionFrameRenderer {
             field = ground(index, at: time, plan: plan).fading(to: MotionEasing.enter.progress(progress, duration: 1)).composited(over: field)
         }
         let leaving = sceneImage(index - 1, at: past, sharpAt: before.duration + sharp, plan: plan, frames: frames, hiding: carried, onField: false)
-        let arriving = sceneImage(index, at: time, sharpAt: sharp, plan: plan, frames: frames, hiding: carried, onField: false)
-        return travelling(into: index, at: time, over: field, plan: plan, frames: frames)
-            .composited(over: arriving.composited(over: leaving))
-            .composited(over: field)
+        // Each carried layer drawn where it stands among the next scene's: drawn over them all, the working card carried into
+        // Solve's reply hid the reply arriving in it until it had landed, 0.7 s of an empty card
+        let travelled = travelling(into: index, at: time, over: field, plan: plan, frames: frames)
+        let arriving = sceneImage(index, at: time, sharpAt: sharp, plan: plan, frames: frames, hiding: carried, onField: false, inPlace: travelled)
+        return arriving.composited(over: leaving).composited(over: field)
     }
 
-    /// The layers both scenes have, part of the way from their places in the scene before to theirs in the next: a rectangle
-    /// changing its size, corners and colour on the way, anything else turning into the next scene's in the middle of it.
-    private static func travelling(into index: Int, at time: Double, over field: CIImage, plan: MotionPlan, frames: [MotionPlan.LayerKey: CIImage]) -> CIImage {
+    /// The layers both scenes have, by id, part of the way from their places in the scene before to theirs in the next: a
+    /// rectangle changing its size, corners and colour on the way, anything else turning into the next scene's in the middle of it.
+    private static func travelling(
+        into index: Int, at time: Double, over field: CIImage, plan: MotionPlan, frames: [MotionPlan.LayerKey: CIImage]
+    ) -> [String: CIImage] {
         let (before, next) = (plan.scenes[index - 1], plan.scenes[index])
         let carried = MotionPlan.carried(from: before, to: next)
-        guard !carried.isEmpty else { return .empty() }
+        guard !carried.isEmpty else { return [:] }
         let past = before.duration + time
         let carry = MotionPlan.flowCarry
         let progress = carry.easing.progress(min(max(time / carry.duration, 0), 1), duration: carry.duration)
@@ -41,7 +44,7 @@ nonisolated extension MotionFrameRenderer {
         let look = change * change * (3 - 2 * change)
         let (leaving, arriving) = (plan.placements(of: before, at: past), plan.placements(of: next, at: time))
         let carriedOut = Dictionary(leaving.filter { carried.contains(before.layers[$0.layer].id) }.map { (before.layers[$0.layer].id, $0) }) { first, _ in first }
-        var image = CIImage.empty()
+        var images: [String: CIImage] = [:]
         for placement in arriving {
             let (layer, id) = (next.layers[placement.layer], next.layers[placement.layer].id)
             guard carried.contains(id), let from = carriedOut[id] else { continue }
@@ -49,8 +52,7 @@ nonisolated extension MotionFrameRenderer {
                 let shape = ShapeMorph.image(of: ShapeMorph.interpolated(start, end, progress), scale: layer.rasterScale)
                 // Seen throughout, though the groups it travels out of and into fade
                 let moved = mixed(from, placement, progress, layer: placement.layer, opacity: max(from.opacity, placement.opacity))
-                let drawn = layerImage(moved, in: index, over: field, at: time, placements: arriving, plan: plan, frames: frames, content: shape)
-                image = drawn?.composited(over: image) ?? image
+                images[id] = layerImage(moved, in: index, over: field, at: time, placements: arriving, plan: plan, frames: frames, content: shape)
                 continue
             }
             // Each keeps its own shape on the way, scaled evenly onto where the carried layer is: drawn into the quad between
@@ -58,14 +60,16 @@ nonisolated extension MotionFrameRenderer {
             let opacity = max(from.opacity, placement.opacity)
             let out = fitted(from, onto: mixed(from, placement, progress, layer: from.layer, opacity: opacity * (1 - look)))
             let into = fitted(placement, onto: mixed(from, placement, progress, layer: placement.layer, opacity: opacity * look))
+            var image = CIImage.empty()
             if look < 1, let drawn = layerImage(out, in: index - 1, over: field, at: past, placements: leaving, plan: plan, frames: frames) {
                 image = drawn.composited(over: image)
             }
             if look > 0, let drawn = layerImage(into, in: index, over: field, at: time, placements: arriving, plan: plan, frames: frames) {
                 image = drawn.composited(over: image)
             }
+            images[id] = image
         }
-        return image
+        return images
     }
 
     /// How far the scene before's leaving layers and the carried ones move while a shutter `shutter` long is open at `time`

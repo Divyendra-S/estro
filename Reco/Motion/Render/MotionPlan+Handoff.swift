@@ -17,9 +17,10 @@ extension MotionPlan {
     /// its reply read as two texts on top of each other.
     nonisolated static let flowLeave = (lead: 0.15, duration: 0.22, travel: 0.1)
 
-    /// Each layer arrives from 0.12 of the width back over 0.65 s, out-expo, half there in a fifth of it; seen at once. Neither
-    /// blurs (spec 0026): blurred 8–10 px, Mastra 5's code went out under its chat as a smear of two texts.
-    nonisolated static let flowArrive = (start: 0.08, duration: 0.65, travel: 0.12, fade: 0.2)
+    /// Each layer arrives from 0.12 of the width back over 0.65 s, out-expo, half there in a fifth of it, from the cut, so it
+    /// comes as the last leave: from 0.08 s, Solve's frames were all but empty for 0.1 s at each flow. Neither blurs (spec
+    /// 0026): blurred 8–10 px, Mastra 5's code went out under its chat as a smear of two texts.
+    nonisolated static let flowArrive = (start: 0.0, duration: 0.65, travel: 0.12, fade: 0.2)
 
     /// One layer after another, by where it is along the way, the front first: 0.045 s apart, all within 0.15 s. Twelve lines
     /// of code 0.045 s apart would leave over half a second, the last under the next scene.
@@ -80,15 +81,21 @@ extension MotionPlan {
         }
     }
 
-    /// A scene's top-level layers that flow, front first along `way`: not grounds, and not wholly carried.
+    /// A scene's layers that flow, front first along `way`: the largest with nothing carried in them, not grounds. A group a
+    /// carried layer is in flows by its other parts: faded as a whole, it took Solve's folder card, carried into the prompt's
+    /// chip, out of the frame with it.
     nonisolated private static func movers(of scene: Scene, carrying carried: Set<String>, way: SIMD2<Double>, canvas: CGSize) -> [Int] {
-        scene.layers.indices
-            .filter { index in
-                let layer = scene.layers[index]
-                guard layer.parent == nil, !isGround(layer, canvas: canvas) else { return false }
-                let drawn = scene.layers.indices.filter { scene.isLayer($0, within: index) && scene.layers[$0].isDrawn }
-                return !drawn.allSatisfy { carried.contains(scene.layers[$0].id) }
+        let carries = { (index: Int) in
+            scene.layers.indices.contains { scene.isLayer($0, within: index) && scene.layers[$0].isDrawn && carried.contains(scene.layers[$0].id) }
+        }
+        func units(under parent: Int?) -> [Int] {
+            scene.layers.indices.filter { scene.layers[$0].parent == parent }.flatMap { index -> [Int] in
+                guard parent != nil || !isGround(scene.layers[index], canvas: canvas) else { return [] }
+                guard carries(index) else { return [index] }
+                return scene.layers[index].isDrawn ? [] : units(under: index)
             }
+        }
+        return units(under: nil)
             .sorted { first, second in
                 let along = { (index: Int) in
                     let layer = scene.layers[index]

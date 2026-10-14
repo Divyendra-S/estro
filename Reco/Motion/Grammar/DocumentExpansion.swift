@@ -12,8 +12,8 @@ import Foundation
 nonisolated enum DocumentExpansion {
 
     /// A roll's words swap in 0.2 s (0.1–0.23 measured on Linear for Agents), moving 0.5 em: the word
-    /// leaving is half gone when the next starts in, so the two never sit on each other (at 0.35 em
-    /// together, "agents" and "Delegate" read as one blot mid-swap).
+    /// leaving has faded by the time the next starts in, so the two never sit on each other (half
+    /// gone, Laminar's checks counter read "0/4/1" mid-swap).
     static let rollTransition = 0.2
     static let rollDistance = 0.5
     static let rollHandover = 0.1
@@ -174,12 +174,13 @@ nonisolated enum DocumentExpansion {
     /// roll's words in its place, one after another. The layer's own moves go on each part, a reveal
     /// timed so the whole line still reveals as one.
     private static func rolled(_ layer: MotionLayer, text: TextContent, roll: MotionMove, in scene: MoveContext) -> MotionLayer {
-        var lastWord: Range<String.Index>?
-        text.text.enumerateSubstrings(in: text.text.startIndex..., options: .byWords) { _, range, _, _ in lastWord = range }
+        let first = rollingStart(of: text.text, into: roll.words ?? [])
+        let offset = text.text.distance(from: text.text.startIndex, to: first)
         let image = TextImage(text, scale: 0)
-        guard let lastWord, let box = image.words.last else { return layer }
-        let prefix = String(text.text[..<lastWord.lowerBound])
-        let words = [String(text.text[lastWord])] + (roll.words ?? [])
+        guard first < text.text.endIndex, image.characters.indices.contains(offset) else { return layer }
+        let box = image.characters[offset]
+        let prefix = String(text.text[..<first])
+        let words = [String(text.text[first...])] + (roll.words ?? [])
         let origin = CGPoint(x: -layer.transform.anchor.x * image.size.width, y: -layer.transform.anchor.y * image.size.height)
 
         // The layer's reveal over the whole text, split at the last word
@@ -214,12 +215,11 @@ nonisolated enum DocumentExpansion {
         if !prefix.isEmpty {
             parts.append(part("\(layer.id).prefix", prefix, at: prefixOrigin(prefix, of: text, in: image, at: origin), revealFrom: 0, word: 0))
         }
-        let offset = text.text.distance(from: text.text.startIndex, to: lastWord.lowerBound)
         let top = origin.y + box.minY
         for (index, word) in words.enumerated() {
             let wordLayer = part(
                 "\(layer.id).word\(index)", word, at: .zero, revealFrom: index == 0 ? offset : text.text.count,
-                word: index == 0 ? image.words.count - 1 : image.words.count
+                word: index == 0 ? wordCount(of: prefix) : image.words.count
             )
             // In a group of its own, so the roll's keyframes don't override the moves the word carries
             parts.append(MotionLayer(
@@ -233,14 +233,30 @@ nonisolated enum DocumentExpansion {
         return group
     }
 
-    /// Where a rolled text's prefix, drawn alone and leading, goes so it starts where its first word
-    /// was in the whole line: a centred line in a wider box would leave a gap before the rolling word.
+    /// Where the part of `text` that rolls into `words` starts: its last word with all that's joined to it. By words alone,
+    /// Solve's "98K+" rolled as "98K" into "210K+", and Laminar's "0/17" turned its "17" into "4/17" behind "0/". A sign
+    /// before it stays unless the roll's words carry it ("$0M" into "9M").
+    private static func rollingStart(of text: String, into words: [String]) -> String.Index {
+        let joined = text.lastIndex(where: \.isWhitespace).map { text.index(after: $0) } ?? text.startIndex
+        let sign = text[joined...].prefix { !$0.isLetter && !$0.isNumber }
+        return words.allSatisfy { $0.hasPrefix(sign) } ? joined : sign.endIndex
+    }
+
+    /// How many words `text` has, as a reveal counts them.
+    private static func wordCount(of text: String) -> Int {
+        var count = 0
+        text.enumerateSubstrings(in: text.startIndex..., options: .byWords) { _, _, _, _ in count += 1 }
+        return count
+    }
+
+    /// Where a rolled text's prefix, drawn alone and leading, goes so it starts where its first character
+    /// was in the whole line: a centred line in a wider box would leave a gap before the rolling word, and a sign ("$") has no word.
     private static func prefixOrigin(_ prefix: String, of text: TextContent, in image: TextImage, at origin: CGPoint) -> CGPoint {
         var alone = text
         alone.text = prefix
         alone.width = nil
         alone.alignment = .leading
-        guard let first = image.words.first, let own = TextImage(alone, scale: 0).words.first else { return origin }
+        guard let first = image.characters.first, let own = TextImage(alone, scale: 0).characters.first else { return origin }
         return CGPoint(x: origin.x + first.minX - own.minX, y: origin.y + first.minY - own.minY)
     }
 
@@ -296,7 +312,7 @@ nonisolated enum DocumentExpansion {
         }
         if index < count - 1 {
             let leaving = start + Double(index) * interval
-            keyframes[.opacity, default: [Keyframe(time: 0, value: 1)]] += [Keyframe(time: leaving, value: 1, easing: .exit), Keyframe(time: leaving + rollTransition, value: 0)]
+            keyframes[.opacity, default: [Keyframe(time: 0, value: 1)]] += [Keyframe(time: leaving, value: 1, easing: .exit), Keyframe(time: leaving + rollHandover, value: 0)]
             keyframes[.positionY, default: [Keyframe(time: 0, value: top)]] += [
                 Keyframe(time: leaving, value: top, easing: .exit), Keyframe(time: leaving + rollTransition, value: top - distance)
             ]

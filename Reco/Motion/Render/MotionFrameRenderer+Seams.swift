@@ -138,15 +138,18 @@ nonisolated extension MotionFrameRenderer {
         let zoom = pow(diveReach(of: source, size: size), progress)
         let view = toward(CGPoint(x: source.midX, y: source.midY), reach: diveReach(of: source, size: size), progress: progress, size: size)
         let centre = CGPoint(x: source.midX, y: source.midY).applying(view)
-        let window = source.applying(view)
+        let opening = source.applying(view)
         let squared = 1 - MotionEasing.enter.progress(min(max((progress - 0.6) / 0.4, 0), 1), duration: 1)
         let radius = min(source.width, source.height) / 2 * zoom * squared
+        // Grown until its rounded corners pass through the source's: a circle inside Solve's square send button left the
+        // button's black corners round the window
+        let window = opening.insetBy(dx: -radius * (1 - 0.5.squareRoot()), dy: -radius * (1 - 0.5.squareRoot()))
         // The side the source is on comes nearer, as Vantae's pill's send did
         let angle = diveTilt * sin(.pi * progress) * (source.midX >= frame.midX ? 1 : -1)
         let tilt = { (image: CIImage) in tilted(image, about: centre, angle: angle, size: size) }
         let margin = frame.insetBy(dx: -size.width * 0.25, dy: -size.height * 0.25)
         let plane = tilt(before.clampedToExtent().cropped(to: margin))
-        let corner = min(radius, min(window.width, window.height) / 2)
+        let corner = min(radius, min(opening.width, opening.height) / 2)
         let shape = { (color: CIColor, filter: String, extra: [String: Any]) in
             let parameters: [String: Any] = ["inputExtent": CIVector(cgRect: window), "inputRadius": corner, "inputColor": color]
             return (CIFilter(name: filter, parameters: parameters.merging(extra) { first, _ in first })?.outputImage ?? CIImage.empty()).cropped(to: margin)

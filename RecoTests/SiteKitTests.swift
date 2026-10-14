@@ -156,6 +156,41 @@ struct SiteKitTests {
         #expect((times.max() ?? 0) - (times.min() ?? 0) <= MotionPlan.flowStagger.within + 0.011, "\(times)")
     }
 
+    /// Across a flow, what leaves and what arrives are never both all but gone: the frame never empties to the ground.
+    @Test func aFlowNeverEmptiesTheFrame() async throws {
+        let json = #"{"version": 1, "scenes": [{"id": "one", "duration": 2, "layers": [{"id": "card", "content": {"shape": {"size": [600, 200], "color": "333333"}}}]}, "#
+            + #"{"id": "two", "duration": 2, "seam": "flow", "layers": [{"id": "box", "content": {"shape": {"size": [400, 300], "color": "333333"}}}]}]}"#
+        let plan = await MotionPlan.build(try JSONDecoder().decode(MotionDocument.self, from: Data(json.utf8)), bundle: URL.temporaryDirectory, shorterSide: 270)
+        let (one, two) = (plan.scenes[0], plan.scenes[1])
+
+        for time in stride(from: -0.2, through: 0.3, by: 0.01) {
+            let seen = max(one.layers[0].value(.opacity, at: one.duration + time), time >= 0 ? two.layers[0].value(.opacity, at: time) : 0)
+            #expect(seen > 0.3, "\(time): \(seen)")
+        }
+    }
+
+    /// A layer carried out of a group stays seen across a flow while the group's other parts leave and arrive round it.
+    @Test func aFlowCarriesALayerOutOfItsGroup() async throws {
+        let part = { (id: String, content: String) in #"{"id": "\#(id)", "content": \#(content)}"# }
+        let (title, fill) = (#"{"text": {"text": "Stapler", "size": 40}}"#, #"{"shape": {"size": [600, 200], "color": "eeeeee"}}"#)
+        let json = #"{"version": 1, "scenes": [{"id": "one", "duration": 2, "layers": [{"id": "card", "content": {"group": ["#
+            + part("fill", fill) + "," + part("title", title) + #"]}}]}, {"id": "two", "duration": 2, "seam": "flow", "layers": ["#
+            + #"{"id": "chip", "content": {"group": ["# + part("dot", fill) + "," + part("title", title) + "]}}]}]}"
+        let plan = await MotionPlan.build(try JSONDecoder().decode(MotionDocument.self, from: Data(json.utf8)), bundle: URL.temporaryDirectory, shorterSide: 270)
+        let seen = { (scene: MotionPlan.Scene, id: String, time: Double) -> Double in
+            var (index, opacity) = (scene.layers.firstIndex { $0.id == id }, 1.0)
+            while let layer = index {
+                opacity *= scene.layers[layer].value(.opacity, at: time)
+                index = scene.layers[layer].parent
+            }
+            return opacity
+        }
+        let (one, two) = (plan.scenes[0], plan.scenes[1])
+
+        #expect(seen(one, "title", one.duration + 0.1) > 0.99 && seen(two, "title", 0) > 0.99)
+        #expect(seen(one, "fill", one.duration + 0.1) < 0.01 && seen(two, "dot", 0) < 0.01)
+    }
+
     /// A mark lifted in one colour keeps sharp edges magnified, as a text does.
     @Test func aTintedMarkIsCrisped() async throws {
         let json = ##"{"version": 1, "assets": [{"id": "logo", "url": "https://example.com", "selector": "svg"}], "scenes": [{"id": "one", "duration": 2, "layers": ["##

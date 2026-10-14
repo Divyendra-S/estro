@@ -104,7 +104,7 @@ struct CameraCraftTests {
         #expect(MotionPlan.carried(from: one, to: two) == ["pill"])
         #expect(two.transition?.seam == .flow && one.overlap == SeamExpansion.flowDuration)
         #expect(note.value(.opacity, at: 2 - MotionPlan.flowLeave.lead) == 1 && note.value(.opacity, at: 2.3) < 0.05)
-        #expect(label.value(.opacity, at: 0) == 0 && label.value(.opacity, at: 0.8) == 1)
+        #expect(label.value(.opacity, at: 0) < 0.01 && label.value(.opacity, at: 0.8) == 1)
 
         // Half way, the pill is between its places and between its colours
         let time = two.start + MotionPlan.flowCarry.duration / 2
@@ -112,6 +112,24 @@ struct CameraCraftTests {
         let middle = CGPoint(x: (400 + 1200) / 2 * plan.outputScale, y: (1080 - (300 + 700) / 2) * plan.outputScale)
         let color = try Self.color(of: frame, at: middle)
         #expect(color[0] > 60 && color[2] > 60 && color[1] < 40, "\(color)")
+    }
+
+    /// A card carried across a flow stays under what arrives in it: drawn over the next scene, Solve's working card hid the reply
+    /// coming into it for 0.7 s.
+    @Test func aCarriedCardHoldsWhatArrivesInIt() async throws {
+        let json = #"""
+            {"version": 1, "canvas": {"background": "#000000"}, "scenes": [
+              {"id": "one", "duration": 2, "camera": {"moves": [{"move": "hold"}]}, "layers": [
+                {"id": "card", "transform": {"position": [960, 540, 0]}, "content": {"shape": {"size": [600, 300], "color": "#ffffff"}}}]},
+              {"id": "two", "duration": 2, "seam": "flow", "camera": {"moves": [{"move": "hold"}]}, "layers": [
+                {"id": "card", "transform": {"position": [960, 540, 0]}, "content": {"shape": {"size": [800, 400], "color": "#ffffff"}}},
+                {"id": "dot", "transform": {"position": [960, 540, 0]}, "content": {"shape": {"size": [300, 200], "color": "#00ff00"}}}]}]}
+            """#
+        let plan = await MotionPlan.build(try JSONDecoder().decode(MotionDocument.self, from: Data(json.utf8)), bundle: URL.temporaryDirectory, shorterSide: 540)
+        let frame = MotionFrameRenderer.image(at: plan.scenes[1].start + MotionPlan.flowCarry.duration / 2, plan: plan)
+        let color = try Self.color(of: frame, at: CGPoint(x: 960 * plan.outputScale, y: 540 * plan.outputScale))
+
+        #expect(color[1] > 200 && color[0] < 60, "\(color)")
     }
 
     /// A line carried from one size to another keeps its shape on the way, its letters' room with it: drawn into the quad between

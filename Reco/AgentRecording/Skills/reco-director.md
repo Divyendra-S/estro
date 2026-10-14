@@ -96,6 +96,7 @@ Every film is drawn in the product's own taste. Set it once with set_style and s
 | Dark, painting a gradient or a glow | `aurora` (its gradient); `ember`, `sunlit`, `bloom`, `orb` (toned to 0.45 under type) |
 | Dark, with dots, a grid, halftone or pixels in its own pictures | `swirl`, `warp`, `tide`, `matrix` (0.45 under type) |
 | Light, one clear colour | `haze` with its gradient; `plain` on its background with lit, shadowed cards |
+| Light, black and white, no colour of its own | `plain` on its white with lit, shadowed cards; `haze` only pale (below) |
 | Light, warm, typographic, print-like | `paper`; `plain` |
 
   A film keeps one ground, never a new field each scene (`pool` and `plain` are one). Scenes may change the colour of a

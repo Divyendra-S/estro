@@ -91,11 +91,12 @@ nonisolated enum MotionFrameRenderer {
     }
 
     /// A scene's layers at `time` in it, blurred as its camera is, over its field; layers drawn sharp where they are at
-    /// `sharp`. Layers whose ids are `hiding` are left out, and without `onField` the field too. Seen through `view` (output
-    /// pixels), every layer is drawn there from its own image (``MotionPlan/Placement/viewed(through:canvas:outputScale:)``).
+    /// `sharp`. Layers whose ids are `hiding` are left out, their image `inPlace` drawn where they'd be, and without `onField` the
+    /// field too. Seen through `view` (output pixels), every layer is drawn there from its own image
+    /// (``MotionPlan/Placement/viewed(through:canvas:outputScale:)``).
     static func sceneImage(
         _ index: Int, at time: Double, sharpAt sharp: Double, plan: MotionPlan, frames: [MotionPlan.LayerKey: CIImage],
-        hiding: Set<String> = [], onField: Bool = true, view: CGAffineTransform? = nil
+        hiding: Set<String> = [], onField: Bool = true, view: CGAffineTransform? = nil, inPlace: [String: CIImage] = [:]
     ) -> CIImage {
         let scene = plan.scenes[index]
         let bounds = CGRect(origin: .zero, size: plan.outputSize)
@@ -117,8 +118,12 @@ nonisolated enum MotionFrameRenderer {
                 marked.removeAll { $0 == index }
                 image = marks(of: index, in: scene, placements: placements, plan: plan).composited(over: image)
             }
-            guard !hiding.contains(scene.layers[placement.layer].id),
-                  let layerImage = layerImage(placement, in: index, over: field, at: time, placements: placements, plan: plan, frames: frames) else { continue }
+            let id = scene.layers[placement.layer].id
+            if hiding.contains(id) {
+                image = inPlace[id]?.composited(over: image) ?? image
+                continue
+            }
+            guard let layerImage = layerImage(placement, in: index, over: field, at: time, placements: placements, plan: plan, frames: frames) else { continue }
             image = layerImage.composited(over: image)
         }
         image = pointers(of: scene, at: time, plan: plan).transformed(by: view ?? .identity).composited(over: image)

@@ -30,6 +30,17 @@ struct TextImageTests {
         #expect(zip(text.lines, text.lines.dropFirst()).allSatisfy { $0.minY < $1.minY })
     }
 
+    /// By words alone, a word-by-word reveal never showed the full stop after Solve's "doing." or the quote mark before
+    /// Baseten's "160": a word takes the punctuation joined to it, and the spaces between stay out.
+    @Test func aWordKeepsItsPunctuation() {
+        let text = TextImage(TextContent(text: "“160 ms, crazy.”", size: 80), scale: 1)
+
+        #expect(text.words.count == 3)
+        #expect(abs(text.words[0].minX - text.lines[0].minX) < 2)
+        #expect(abs(text.words[2].maxX - text.lines[0].maxX) < 2)
+        #expect(zip(text.words, text.words.dropFirst()).allSatisfy { $0.maxX < $1.minX })
+    }
+
     @Test func emptyTextHasNoImage() {
         #expect(TextImage(TextContent(text: ""), scale: 1).image == nil)
     }

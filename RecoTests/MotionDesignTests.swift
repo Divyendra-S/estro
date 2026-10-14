@@ -186,6 +186,16 @@ struct MotionDesignTests {
         #expect(rings[0].moves.first?.size == CGSize(width: 40 + 2 * BurstExpansion.ringReach * 40, height: 40 + 2 * BurstExpansion.ringReach * 40))
     }
 
+    @Test func aRippleCentresOnTheShapeItsMorphGrew() throws {
+        let layers = DocumentExpansion.expanded(try document(#"""
+        [{"id": "bar", "content": {"shape": {"size": [8, 60], "color": "a5ff9e"}}, "transform": {"position": [500, 540, 0], "anchor": [0, 0.5]},
+          "moves": [{"move": "morph", "start": 0.2, "duration": 0.5, "size": [504, 60]}, {"move": "ripple", "start": 1}]}]
+        """#), sizes: [:]).scenes[0].layers
+
+        // Laminar's bar, grown right from its left edge, rippled round that edge over the lane's label
+        #expect(abs((layers.last?.transform.position.x ?? 0) - (500 + 504 / 2)) < 0.01)
+    }
+
     @Test func rowsBuildAsTheScrollBringsThemIn() throws {
         let rows = (0..<5).map { #"{"id": "r\#($0)", "content": {"shape": {"size": [100, 100], "color": "ffffff"}}, "transform": {"position": [0, \#($0 * 300), 0]}}"# }
         let list = #"[{"id": "list", "content": {"group": [\#(rows.joined(separator: ", "))]}, "transform": {"position": [960, 400, 0]},"#

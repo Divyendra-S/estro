@@ -41,6 +41,20 @@ struct FlowFilmTests {
         #expect(try Self.color(of: draw(1), at: CGPoint(x: 230, y: 125)) == Self.color(of: Self.blue, at: .zero))
     }
 
+    /// A dive out of a square control shows none of the control round its window: the window's rounded corners pass through
+    /// the control's.
+    @Test func aDiveCoversASquareSource() throws {
+        let source = CGRect(x: 100, y: 48, width: 40, height: 40)
+        let reach = MotionFrameRenderer.diveReach(of: source, size: Self.size)
+        let view = MotionFrameRenderer.toward(CGPoint(x: source.midX, y: source.midY), reach: reach, progress: 0.01, size: Self.size)
+        let image = MotionFrameRenderer.dived(Self.red, into: Self.blue, from: source, progress: 0.01, size: Self.size)
+
+        for corner in [CGPoint(x: source.minX + 3, y: source.minY + 3), CGPoint(x: source.maxX - 3, y: source.maxY - 3)] {
+            let color = try Self.color(of: image, at: corner.applying(view))
+            #expect(color[2] > 150 && color[0] < 100, "\(color)")
+        }
+    }
+
     /// A melt takes the scene before's darks first: part of the way, its dark half is the next scene and its light half still
     /// itself; it starts as the scene before and ends as the next.
     @Test func aMeltGoesDarksFirst() throws {

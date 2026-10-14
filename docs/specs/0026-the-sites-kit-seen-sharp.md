@@ -107,6 +107,80 @@ Fixed in the engine (the document unchanged):
   - It is still 25 % of the time: the end card holds about 2 s.
 - The whole suite: 959 tests. Only `keepsATransparentBackgroundInProRes4444` fails, as before.
 
+## Solve Intelligence
+
+Two films from the app on solveintelligence.com, a white, black-and-white site.
+- **The dive's corners.** The first dove through a square send button into a round window, the button's black corners
+  round it for 0.3 s. The window now grows until its rounded corners pass through the source's (`aDiveCoversASquareSource`).
+- **Flows emptied the frame.** The scene before is gone 0.07 s after the cut and arrivals began at 0.08 s, their fade 0.2 s
+  long: every flow showed the bare ground for about 0.1 s. Arrivals start at the cut (`aFlowNeverEmptiesTheFrame`).
+- **Carried out of a group.** The second film's folder card (a group) was to shrink into the prompt's attachment chip.
+  The group flowed out as a whole and took its carried title and fill with it, so the chip appeared only after the seam. A
+  group a carried layer is in now flows by its other parts (`aFlowCarriesALayerOutOfItsGroup`).
+- **The ground.** The first film's haze ran to `#8f959e` and lit the corners in grey smudges. The director and flow skills
+  send a black-and-white site to `plain`, or a haze no darker than `#d4d8de`.
+- `Solve Intelligence 3` is the second film's document with its carried layers named alike, its typed line fitting the
+  frame, its counters starting from earlier counts and a flow into them, exported by the app at 4K60 (23.5 s).
+- **Carried layers in their place.** A flow drew every carried layer over the whole next scene. The working card carried
+  into the reply's card hid the reply arriving inside it until it had landed: 0.7 s of an empty card. Each carried layer is
+  now drawn where it stands among the next scene's layers (`aCarriedCardHoldsWhatArrivesInIt`).
+- **A roll keeps its sign.** A roll turned only the text's last word, so "98K+" showed "98K" before rolling to "210K+". It
+  now turns the last word with what follows it (`aRollKeepsWhatFollowsItsLastWord`).
+- `Solve Intelligence 4` grows the first film's document, which the user preferred, by hand. It is 29.6 s, exported by the
+  app at 4K60.
+  - FIG. 1 is the stapler drawing from the figure page, lifted by region above the page's own cursor. Its numeral 120 is
+    named "first arm" in a live editor.
+  - The spec's "lower jaw 120" is flagged by Review and fixed.
+  - The flood lands before the numbers, and an iris opens out of the black.
+
+## Laminar
+
+laminar.com is black, with one picture: the hero video's glowing block, cyan into violet and blue. The film from the app
+put its claims small in the top-left corner on a grey grainy `sunlit`. It flew through the "w" of its claim into a white
+wedge, and quoted numbers the site doesn't have.
+- **A roll turns the whole number.** By words, "0/17" rolled its "17" into "4/17" behind "0/" and ended as "0/17/17". The
+  last word now rolls with all that's joined to it, and a sign before it stays unless the roll's words carry it: "$0M"
+  into "9M" (`aRollTurnsTheWholeNumber`).
+- **One word at a time.** The leaving word fades within the 0.1 s handover. Half there as the next came in, "3.0d" and
+  "6.1d" read as one blot (`aRollShowsOneWordAtATime`).
+- **A ripple round what its morph grew.** A ripple and a burst are centred on the size the layer's morphs have given it.
+  A bar anchored on its left, grown from 8 px to 504 px, rippled round its left edge (`aRippleCentresOnTheShapeItsMorphGrew`).
+- `Laminar 2` rebuilds the film by hand:
+  - **Ground and picture.** It stands on `pool` in Laminar's blue. The hero poster is lifted as `hero`: the film opens on
+    it and ends on it over the wordmark.
+  - **Layout.** Every claim is large and centred, and no camera move cuts a card's words at the frame.
+  - **Seams.** Flows carry Shift's chip and the bottleneck bar, an expand comes out of Send to Flow, a flood turns into
+    "Pay on results.", then a stack, then a flow to the end.
+  - **Numbers** come from the site's case studies.
+- `Laminar 3` gives each beat more to do, from the document alone:
+  - The claims' last words are in their product's colour.
+  - A scan line crosses Shift's lanes, each bar starting as it passes. The other lanes then dim through their groups,
+    leaving the bottleneck lit.
+  - A progress line fills under the checks.
+  - The green flood shrinks into a chip.
+  - A big tile carried into a small white button read as a slide, then a snap, so the end stays a plain flow.
+
+## Baseten
+
+baseten.co is white, with isometric green art drawn by script, which the capture couldn't lift.
+- **A lift waits for a script's reveal** (`waitsForAScriptToRevealWhatItLifts`).
+  - The scroll to the element is instant. The page scrolls smoothly, so its art was still gliding up a second later.
+  - Then up to 5 s more, until the element is wholly shown and still. The hero art lifted blank: it is hidden 1.4 s after
+    loading, then rises 58 px over 0.8 s.
+  - While the page shows it out of view, it scrolls by that much, up to three times. WebKit's own scroll left the art
+    17–25 px, and the globe a whole height, below the view.
+- `Baseten 3` uses the site's whole kit: its mark rebuilt from five blocks, its hero, cloud ring and model logos, its
+  green and pink as the graphic seams' colours, and a different seam at every turn.
+
+## Solve Intelligence
+
+- **A word keeps its punctuation** (`aWordKeepsItsPunctuation`). Word boxes by `.byWords` left out punctuation, so a
+  word-by-word reveal never showed "doing."'s full stop or the quote mark before "160". A word's box now runs to the next
+  word's start, without the spaces between. The number of words, which the timings use, is unchanged.
+- `Solve Intelligence 5` grows v3 with the site's kit. Its mark springs open and flies past the camera. It adds the
+  technology-area drawings, the DLA Piper partner's photo and words, and the customers' logos. Each turn has its own
+  seam: zoomThrough, through letters, the mark's motif, lens, swing, wipe, slats and ring.
+
 ## Open
 
 - Shapes (panels) magnified past their raster still soften at their edges; only text is crisped.

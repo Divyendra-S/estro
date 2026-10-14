@@ -25,6 +25,7 @@ How Reco is built. Component structure, data flow, and implementation details.
 
 ## Specifications
 
+- [Features:](FEATURES.md) What this fork adds, feature by feature: files, measured facts, and the roadmap's status.
 - [Feature Specs:](specs/) Detailed specifications for individual features.
 
 ## Process

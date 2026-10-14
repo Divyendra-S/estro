@@ -64,7 +64,7 @@ nonisolated struct TextImage: @unchecked Sendable {
             lineBoxes.append(box)
             // A line's breaking space or newline counts as a character, at the line's end
             characterBoxes += Self.boxes(of: .byComposedCharacterSequences, in: text, on: line, at: box)
-            wordBoxes += Self.boxes(of: .byWords, in: text, on: line, at: box)
+            wordBoxes += Self.words(in: text, on: line, at: box)
         }
         self.lines = lineBoxes
         words = wordBoxes
@@ -94,6 +94,26 @@ nonisolated struct TextImage: @unchecked Sendable {
             boxes.append(CGRect(x: box.minX + start, y: box.minY, width: end - start, height: box.height))
         }
         return boxes
+    }
+
+    /// The boxes of `line`'s words, each with the punctuation joined to it and without the spaces between: by words alone, a
+    /// word-by-word reveal never showed the full stop after Solve's "doing." or the quote mark before Baseten's "160".
+    private static func words(in text: NSString, on line: CTLine, at box: CGRect) -> [CGRect] {
+        let range = CTLineGetStringRange(line)
+        var starts: [Int] = []
+        text.enumerateSubstrings(in: NSRange(location: range.location, length: range.length), options: .byWords) { _, word, _, _ in
+            starts.append(word.location)
+        }
+        let isSpace = { (index: Int) in Character(UnicodeScalar(text.character(at: index)) ?? " ").isWhitespace }
+        return starts.indices.map { index in
+            var start = index == 0 ? range.location : starts[index]
+            var end = index + 1 < starts.count ? starts[index + 1] : range.location + range.length
+            while start < end, isSpace(start) { start += 1 }
+            while end > start, isSpace(end - 1) { end -= 1 }
+            let left = CTLineGetOffsetForStringIndex(line, start, nil)
+            let right = max(CTLineGetOffsetForStringIndex(line, end, nil), left)
+            return CGRect(x: box.minX + left, y: box.minY, width: right - left, height: box.height)
+        }
     }
 
     /// The brand's face, else SF Pro, New York or SF Mono, at the content's size and weight.

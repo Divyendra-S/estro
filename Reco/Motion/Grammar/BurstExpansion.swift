@@ -152,14 +152,19 @@ nonisolated enum BurstExpansion {
 
     // MARK: - Where they come from
 
-    /// The middle of `layer` where its morphs and scrolls have taken it by `time`, in its parent's space.
+    /// The middle of `layer` where its morphs and scrolls have taken it by `time`, at the size they've given it, in its parent's
+    /// space: at its own, Laminar's bar grown right from 8 px rippled round its left edge.
     static func centre(of layer: MotionLayer, before time: Double, sizes: [String: CGSize], context: MoveContext) -> SIMD3<Double> {
         let travels = layer.moves.filter { [.morph, .scroll].contains($0.kind) && $0.target != nil }
             .map { (target: $0.target, start: MoveExpansion.timing(of: $0, in: context).start) }
             .filter { $0.start <= time }
             .sorted { $0.start < $1.start }
         let place = travels.last?.target ?? CGPoint(x: layer.transform.position.x, y: layer.transform.position.y)
-        let size: CGSize = if case .text(let text) = layer.content { TextImage(text, scale: 0).size } else { MotionPlan.size(of: layer.content, sizes: sizes) }
+        let size: CGSize = switch layer.content {
+        case .text(let text): TextImage(text, scale: 0).size
+        case .shape(let shape): ShapeMorph(shape, moves: layer.moves, context: context)?.state(at: time).size ?? shape.size
+        default: MotionPlan.size(of: layer.content, sizes: sizes)
+        }
         let anchor = layer.transform.anchor
         let scale = layer.transform.scale
         return [place.x + (0.5 - anchor.x) * size.width * scale, place.y + (0.5 - anchor.y) * size.height * scale, layer.transform.position.z]

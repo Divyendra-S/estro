@@ -334,6 +334,68 @@ struct UICaptureTests {
     }
 }
 
+// MARK: - Revealed by a script
+
+extension UICaptureTests {
+
+    /// Pictures a script reveals 1.4 s after they come into view, rising 58 px into place over 0.8 s as baseten.co's art
+    /// does, on a page that scrolls smoothly: its hero lifted blank. And one the page moves down once it's scrolled to, as
+    /// WebKit laid baseten.co's art out 25 px, and its globe a whole height, below where it had scrolled.
+    private static let revealed = """
+    <!doctype html>
+    <html style="scroll-behavior: smooth"><body style="margin: 0; background: #fff">
+      <div class="reveal" style="opacity: 0; transform: translateY(58px)"><div id="hero" style="width: 300px; height: 200px; background: rgb(255, 0, 0)"></div></div>
+      <div style="height: 1600px"></div>
+      <div class="reveal" style="opacity: 0; transform: translateY(58px)"><div id="art" style="width: 300px; height: 200px; background: rgb(255, 0, 0)"></div></div>
+      <div style="height: 1600px"></div>
+      <div id="above" style="height: 0"></div>
+      <div id="late" style="width: 300px; height: 200px; background: rgb(255, 0, 0)"></div>
+      <div style="height: 100px"></div>
+      <script>
+        const reveal = element => {
+          if (element.dataset.started) return;
+          element.dataset.started = 'yes';
+          setTimeout(() => {
+            const start = performance.now();
+            const step = now => {
+              const done = Math.min((now - start) / 800, 1);
+              element.style.opacity = done;
+              element.style.transform = `translateY(${58 * (1 - done)}px)`;
+              if (done < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+          }, 1400);
+        };
+        const check = () => {
+          document.querySelectorAll('.reveal').forEach(element => {
+            const box = element.getBoundingClientRect();
+            if (box.top < innerHeight && box.bottom > 0) reveal(element);
+          });
+          const late = document.getElementById('late').getBoundingClientRect();
+          if (late.top < innerHeight) setTimeout(() => document.getElementById('above').style.height = '40px', 200);
+        };
+        addEventListener('scroll', check);
+        addEventListener('load', check);
+      </script>
+    </body></html>
+    """
+
+    @Test func waitsForAScriptToRevealWhatItLifts() async throws {
+        let pages = try await LocalPages.serving(["/": Self.revealed])
+        let bundle = URL.temporaryDirectory.appending(path: "\(UUID().uuidString).motion")
+        defer { try? FileManager.default.removeItem(at: bundle) }
+        var document = MotionDocument()
+        document.assets = ["hero", "art", "late"].map { MotionAsset(id: $0, url: pages.url("/"), selector: "#\($0)", viewport: CGSize(width: 800, height: 600)) }
+
+        try await UICapture.lift(["hero": 1, "art": 1, "late": 1], of: document, into: bundle)
+
+        for asset in document.assets {
+            let middle = try Pixels(try #require(UILiftCache.best(asset, in: bundle)).url).color(column: 150, row: 100)
+            #expect(middle.red == 255 && middle.alpha == 255, "\(asset.id)")
+        }
+    }
+}
+
 // MARK: - Live
 
 extension UICaptureTests {
